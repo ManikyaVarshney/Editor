@@ -1,0 +1,1249 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Formatting Helper Editor</title><style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+}
+
+h1 {
+    margin: 0;
+}
+
+.subtitle {
+    margin: 8px 0 20px;
+    color: #555;
+}
+
+.container {
+    max-width: 1400px;
+    margin: auto;
+}
+
+.toolbar,
+.panel {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-right: 8px;
+    border-right: 1px solid #ddd;
+}
+
+.toolbar-group:last-child {
+    border-right: none;
+}
+
+button,
+select,
+input {
+    min-height: 38px;
+    padding: 7px 11px;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:hover {
+    background: #e6e6e6;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+.format-button {
+    min-width: 42px;
+}
+
+.color-button {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid white;
+    outline: 1px solid #aaa;
+}
+
+.color-button:hover {
+    transform: scale(1.15);
+}
+
+.color-button.black {
+    background: #000000;
+}
+
+.color-button.red {
+    background: #e53935;
+}
+
+.color-button.orange {
+    background: #fb8c00;
+}
+
+.color-button.yellow {
+    background: #fdd835;
+}
+
+.color-button.green {
+    background: #43a047;
+}
+
+.color-button.blue {
+    background: #1e88e5;
+}
+
+.color-button.purple {
+    background: #8e24aa;
+}
+
+.color-button.pink {
+    background: #e91e63;
+}
+
+.color-button.gray {
+    background: #757575;
+}
+
+.color-button.brown {
+    background: #795548;
+}
+
+.color-button.darkblue {
+    background: #003f88;
+}
+
+.color-button.teal {
+    background: #00897b;
+}
+
+input[type="color"] {
+    width: 45px;
+    padding: 3px;
+    cursor: pointer;
+}
+
+#editor {
+    min-height: 500px;
+    background: white;
+    border: 2px solid #888;
+    border-radius: 10px;
+    padding: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    outline: none;
+    overflow-wrap: break-word;
+}
+
+#editor:focus {
+    border-color: #444;
+}
+
+#editor:empty::before {
+    content: "Paste or type your text here...";
+    color: #999;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.panel-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+input[type="text"] {
+    min-width: 220px;
+}
+
+#message {
+    margin-top: 10px;
+    min-height: 22px;
+    font-weight: bold;
+}
+
+@media (max-width: 700px) {
+
+    body {
+        padding: 10px;
+    }
+
+    .toolbar-group {
+        border-right: none;
+        width: 100%;
+    }
+
+    input[type="text"] {
+        width: 100%;
+    }
+
+}
+
+</style></head><body><div class="container"><h1>Formatting Helper Editor</h1><p class="subtitle">
+    Paste → Edit → Format → Copy → Paste anywhere
+</p><!-- =====================================================
+     FORMATTING TOOLBAR
+===================================================== --><div class="toolbar"><!-- TEXT FORMATTING --><div class="toolbar-group"><button
+    class="format-button"
+    type="button"
+    data-command="bold"
+    title="Bold"
+>
+    <b>B</b>
+</button>
+
+<button
+    class="format-button"
+    type="button"
+    data-command="italic"
+    title="Italic"
+>
+    <i>I</i>
+</button>
+
+<button
+    class="format-button"
+    type="button"
+    data-command="underline"
+    title="Underline"
+>
+    <u>U</u>
+</button>
+
+<button
+    class="format-button"
+    type="button"
+    data-command="strikeThrough"
+    title="Strikethrough"
+>
+    <s>S</s>
+</button>
+
+</div><!-- ALIGNMENT --><div class="toolbar-group"><button
+    type="button"
+    data-command="justifyLeft"
+    title="Align Left"
+>
+    Left
+</button>
+
+<button
+    type="button"
+    data-command="justifyCenter"
+    title="Align Center"
+>
+    Center
+</button>
+
+<button
+    type="button"
+    data-command="justifyRight"
+    title="Align Right"
+>
+    Right
+</button>
+
+</div><!-- FONT --><div class="toolbar-group"><select id="fontSelect">
+
+    <option value="">
+        Font
+    </option>
+
+    <option value="Arial">
+        Arial
+    </option>
+
+    <option value="Calibri">
+        Calibri
+    </option>
+
+    <option value="Times New Roman">
+        Times New Roman
+    </option>
+
+    <option value="Verdana">
+        Verdana
+    </option>
+
+    <option value="Georgia">
+        Georgia
+    </option>
+
+    <option value="Courier New">
+        Courier New
+    </option>
+
+    <option value="Tahoma">
+        Tahoma
+    </option>
+
+</select>
+
+
+<select id="sizeSelect">
+
+    <option value="">
+        Size
+    </option>
+
+    <option value="1">
+        1 - Small
+    </option>
+
+    <option value="2">
+        2
+    </option>
+
+    <option value="3">
+        3 - Normal
+    </option>
+
+    <option value="4">
+        4
+    </option>
+
+    <option value="5">
+        5 - Large
+    </option>
+
+    <option value="6">
+        6
+    </option>
+
+    <option value="7">
+        7 - Largest
+    </option>
+
+</select>
+
+</div><!-- TEXT COLOR --><div class="toolbar-group"><strong>Text:</strong>
+
+<button
+    class="color-button black"
+    type="button"
+    data-color="#000000"
+    title="Black"
+></button>
+
+<button
+    class="color-button red"
+    type="button"
+    data-color="#e53935"
+    title="Red"
+></button>
+
+<button
+    class="color-button orange"
+    type="button"
+    data-color="#fb8c00"
+    title="Orange"
+></button>
+
+<button
+    class="color-button yellow"
+    type="button"
+    data-color="#fdd835"
+    title="Yellow"
+></button>
+
+<button
+    class="color-button green"
+    type="button"
+    data-color="#43a047"
+    title="Green"
+></button>
+
+<button
+    class="color-button blue"
+    type="button"
+    data-color="#1e88e5"
+    title="Blue"
+></button>
+
+<button
+    class="color-button purple"
+    type="button"
+    data-color="#8e24aa"
+    title="Purple"
+></button>
+
+<button
+    class="color-button pink"
+    type="button"
+    data-color="#e91e63"
+    title="Pink"
+></button>
+
+<button
+    class="color-button gray"
+    type="button"
+    data-color="#757575"
+    title="Gray"
+></button>
+
+<input
+    type="color"
+    id="customTextColor"
+    value="#000000"
+    title="Custom Text Color"
+>
+
+</div><!-- HIGHLIGHT COLOR --><div class="toolbar-group"><strong>Highlight:</strong>
+
+<button
+    class="color-button"
+    type="button"
+    data-highlight="#ffff00"
+    style="background:#ffff00"
+    title="Yellow"
+></button>
+
+<button
+    class="color-button"
+    type="button"
+    data-highlight="#ffb6c1"
+    style="background:#ffb6c1"
+    title="Pink"
+></button>
+
+<button
+    class="color-button"
+    type="button"
+    data-highlight="#90ee90"
+    style="background:#90ee90"
+    title="Green"
+></button>
+
+<button
+    class="color-button"
+    type="button"
+    data-highlight="#add8e6"
+    style="background:#add8e6"
+    title="Blue"
+></button>
+
+<button
+    class="color-button"
+    type="button"
+    data-highlight="#ffd580"
+    style="background:#ffd580"
+    title="Orange"
+></button>
+
+<button
+    class="color-button"
+    type="button"
+    data-highlight="#d8bfd8"
+    style="background:#d8bfd8"
+    title="Purple"
+></button>
+
+<input
+    type="color"
+    id="customHighlightColor"
+    value="#ffff00"
+    title="Custom Highlight Color"
+>
+
+</div><!-- CLEAR FORMAT --><div class="toolbar-group"><button
+    type="button"
+    id="clearFormat"
+>
+    Clear Format
+</button>
+
+</div></div><!-- =====================================================
+     MAIN EDITOR
+===================================================== --><div
+    id="editor"
+    contenteditable="true"
+    spellcheck="true"
+></div><!-- =====================================================
+     FIND AND REPLACE
+===================================================== --><div class="panel"><div class="panel-title">
+    Find and Replace
+</div>
+
+<div class="panel-row">
+
+    <input
+        type="text"
+        id="findText"
+        placeholder="Find text"
+    >
+
+    <input
+        type="text"
+        id="replaceText"
+        placeholder="Replace with"
+    >
+
+    <button
+        type="button"
+        id="replaceAllButton"
+    >
+        Replace All
+    </button>
+
+</div>
+
+<br>
+
+<div class="panel-row">
+
+    <button
+        type="button"
+        id="removeSpacesButton"
+    >
+        Multiple Spaces → One Space
+    </button>
+
+    <button
+        type="button"
+        id="removeTabsButton"
+    >
+        Tabs → One Space
+    </button>
+
+</div>
+
+</div><!-- =====================================================
+     FINAL ACTIONS
+===================================================== --><div class="panel"><div class="panel-title">
+    Final Actions
+</div>
+
+<div class="panel-row">
+
+    <button
+        type="button"
+        id="copyButton"
+    >
+        Copy Formatted Text
+    </button>
+
+    <button
+        type="button"
+        id="selectAllButton"
+    >
+        Select All
+    </button>
+
+    <button
+        type="button"
+        id="clearButton"
+    >
+        Clear All
+    </button>
+
+</div>
+
+<div id="message"></div>
+
+</div></div><script>
+
+
+/* =====================================================
+   EDITOR
+===================================================== */
+
+const editor =
+    document.getElementById("editor");
+
+
+/* =====================================================
+   SAVE SELECTED TEXT
+===================================================== */
+
+let savedRange = null;
+
+
+function saveSelection() {
+
+    const selection =
+        window.getSelection();
+
+    if (
+        selection.rangeCount === 0
+    ) {
+        return;
+    }
+
+
+    const range =
+        selection.getRangeAt(0);
+
+
+    if (
+        editor.contains(
+            range.commonAncestorContainer
+        )
+    ) {
+
+        savedRange =
+            range.cloneRange();
+
+    }
+
+}
+
+
+function restoreSelection() {
+
+    if (!savedRange) {
+        return;
+    }
+
+
+    const selection =
+        window.getSelection();
+
+
+    selection.removeAllRanges();
+
+
+    selection.addRange(
+        savedRange
+    );
+
+}
+
+
+/* SAVE USER SELECTION */
+
+editor.addEventListener(
+    "mouseup",
+    saveSelection
+);
+
+editor.addEventListener(
+    "keyup",
+    saveSelection
+);
+
+editor.addEventListener(
+    "input",
+    saveSelection
+);
+
+
+/* =====================================================
+   APPLY FORMATTING COMMAND
+===================================================== */
+
+function applyCommand(
+    command,
+    value = null
+) {
+
+    restoreSelection();
+
+    editor.focus();
+
+
+    document.execCommand(
+        command,
+        false,
+        value
+    );
+
+
+    saveSelection();
+
+}
+
+
+/* =====================================================
+   BOLD / ITALIC / UNDERLINE / STRIKE / ALIGNMENT
+===================================================== */
+
+document
+.querySelectorAll(
+    "button[data-command]"
+)
+.forEach(function(button) {
+
+    button.addEventListener(
+        "mousedown",
+        function(event) {
+
+            event.preventDefault();
+
+
+            applyCommand(
+                button.dataset.command
+            );
+
+        }
+    );
+
+});
+
+
+/* =====================================================
+   FONT
+===================================================== */
+
+document
+.getElementById("fontSelect")
+.addEventListener(
+    "change",
+    function() {
+
+        if (this.value) {
+
+            applyCommand(
+                "fontName",
+                this.value
+            );
+
+        }
+
+
+        this.value = "";
+
+    }
+);
+
+
+/* =====================================================
+   FONT SIZE
+===================================================== */
+
+document
+.getElementById("sizeSelect")
+.addEventListener(
+    "change",
+    function() {
+
+        if (this.value) {
+
+            applyCommand(
+                "fontSize",
+                this.value
+            );
+
+        }
+
+
+        this.value = "";
+
+    }
+);
+
+
+/* =====================================================
+   PRESET TEXT COLORS
+===================================================== */
+
+document
+.querySelectorAll(
+    "[data-color]"
+)
+.forEach(function(button) {
+
+    button.addEventListener(
+        "mousedown",
+        function(event) {
+
+            event.preventDefault();
+
+
+            applyCommand(
+                "foreColor",
+                button.dataset.color
+            );
+
+        }
+    );
+
+});
+
+
+/* =====================================================
+   CUSTOM TEXT COLOR
+===================================================== */
+
+document
+.getElementById("customTextColor")
+.addEventListener(
+    "input",
+    function() {
+
+        applyCommand(
+            "foreColor",
+            this.value
+        );
+
+    }
+);
+
+
+/* =====================================================
+   PRESET HIGHLIGHT COLORS
+===================================================== */
+
+document
+.querySelectorAll(
+    "[data-highlight]"
+)
+.forEach(function(button) {
+
+    button.addEventListener(
+        "mousedown",
+        function(event) {
+
+            event.preventDefault();
+
+
+            applyCommand(
+                "hiliteColor",
+                button.dataset.highlight
+            );
+
+        }
+    );
+
+});
+
+
+/* =====================================================
+   CUSTOM HIGHLIGHT COLOR
+===================================================== */
+
+document
+.getElementById("customHighlightColor")
+.addEventListener(
+    "input",
+    function() {
+
+        applyCommand(
+            "hiliteColor",
+            this.value
+        );
+
+    }
+);
+
+
+/* =====================================================
+   CLEAR SELECTED FORMATTING
+===================================================== */
+
+document
+.getElementById("clearFormat")
+.addEventListener(
+    "mousedown",
+    function(event) {
+
+        event.preventDefault();
+
+
+        applyCommand(
+            "removeFormat"
+        );
+
+    }
+);
+
+
+/* =====================================================
+   FIND AND REPLACE
+===================================================== */
+
+document
+.getElementById("replaceAllButton")
+.addEventListener(
+    "click",
+    function() {
+
+        const find =
+            document
+            .getElementById(
+                "findText"
+            )
+            .value;
+
+
+        const replacement =
+            document
+            .getElementById(
+                "replaceText"
+            )
+            .value;
+
+
+        if (find === "") {
+
+            showMessage(
+                "Please enter text in Find."
+            );
+
+            return;
+
+        }
+
+
+        const walker =
+            document.createTreeWalker(
+                editor,
+                NodeFilter.SHOW_TEXT
+            );
+
+
+        const nodes = [];
+
+
+        while (
+            walker.nextNode()
+        ) {
+
+            nodes.push(
+                walker.currentNode
+            );
+
+        }
+
+
+        let count = 0;
+
+
+        nodes.forEach(
+            function(node) {
+
+                const oldText =
+                    node.nodeValue;
+
+
+                if (
+                    oldText.includes(
+                        find
+                    )
+                ) {
+
+                    count +=
+                        oldText
+                        .split(find)
+                        .length - 1;
+
+
+                    node.nodeValue =
+                        oldText
+                        .split(find)
+                        .join(replacement);
+
+                }
+
+            }
+        );
+
+
+        showMessage(
+            count +
+            " replacement(s) completed."
+        );
+
+    }
+);
+
+
+/* =====================================================
+   MULTIPLE SPACES TO ONE SPACE
+
+   Regex:
+   [ \t]{2,}
+===================================================== */
+
+document
+.getElementById("removeSpacesButton")
+.addEventListener(
+    "click",
+    function() {
+
+        const walker =
+            document.createTreeWalker(
+                editor,
+                NodeFilter.SHOW_TEXT
+            );
+
+
+        const nodes = [];
+
+
+        while (
+            walker.nextNode()
+        ) {
+
+            nodes.push(
+                walker.currentNode
+            );
+
+        }
+
+
+        nodes.forEach(
+            function(node) {
+
+                node.nodeValue =
+                    node.nodeValue.replace(
+                        /[ \t]{2,}/g,
+                        " "
+                    );
+
+            }
+        );
+
+
+        showMessage(
+            "Multiple spaces changed to one."
+        );
+
+    }
+);
+
+
+/* =====================================================
+   TABS TO ONE SPACE
+===================================================== */
+
+document
+.getElementById("removeTabsButton")
+.addEventListener(
+    "click",
+    function() {
+
+        const walker =
+            document.createTreeWalker(
+                editor,
+                NodeFilter.SHOW_TEXT
+            );
+
+
+        const nodes = [];
+
+
+        while (
+            walker.nextNode()
+        ) {
+
+            nodes.push(
+                walker.currentNode
+            );
+
+        }
+
+
+        nodes.forEach(
+            function(node) {
+
+                node.nodeValue =
+                    node.nodeValue.replace(
+                        /\t/g,
+                        " "
+                    );
+
+            }
+        );
+
+
+        showMessage(
+            "Tabs changed to one space."
+        );
+
+    }
+);
+
+
+/* =====================================================
+   COPY FORMATTED TEXT
+===================================================== */
+
+document
+.getElementById("copyButton")
+.addEventListener(
+    "click",
+    function() {
+
+        editor.focus();
+
+
+        const range =
+            document.createRange();
+
+
+        range.selectNodeContents(
+            editor
+        );
+
+
+        const selection =
+            window.getSelection();
+
+
+        selection.removeAllRanges();
+
+
+        selection.addRange(
+            range
+        );
+
+
+        document.execCommand(
+            "copy"
+        );
+
+
+        selection.removeAllRanges();
+
+
+        showMessage(
+            "Formatted text copied successfully!"
+        );
+
+    }
+);
+
+
+/* =====================================================
+   SELECT ALL
+===================================================== */
+
+document
+.getElementById("selectAllButton")
+.addEventListener(
+    "click",
+    function() {
+
+        editor.focus();
+
+
+        const range =
+            document.createRange();
+
+
+        range.selectNodeContents(
+            editor
+        );
+
+
+        const selection =
+            window.getSelection();
+
+
+        selection.removeAllRanges();
+
+
+        selection.addRange(
+            range
+        );
+
+
+        saveSelection();
+
+    }
+);
+
+
+/* =====================================================
+   CLEAR ALL
+===================================================== */
+
+document
+.getElementById("clearButton")
+.addEventListener(
+    "click",
+    function() {
+
+        if (
+            confirm(
+                "Clear all content?"
+            )
+        ) {
+
+            editor.innerHTML = "";
+
+            savedRange = null;
+
+
+            editor.focus();
+
+
+            showMessage(
+                "Editor cleared."
+            );
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+function showMessage(text) {
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    message.textContent = text;
+
+
+    clearTimeout(
+        window.messageTimer
+    );
+
+
+    window.messageTimer =
+        setTimeout(
+            function() {
+
+                message.textContent = "";
+
+            },
+            4000
+        );
+
+}
+
+
+</script></body>
+</html>
