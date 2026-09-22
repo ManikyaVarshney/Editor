@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Structura — Professional Editor</title>
+</head>
+
+<body>
+<!-- STRUCTURA EDITOR START -->
+<div id="structura-editor">
+
+  <style>
+    #structura-editor {
+      font-family: Arial, sans-serif;
+      background: #f1f3f6;
+      color: #202124;
+      border: 1px solid #d0d7de;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #structura-editor * {
+      box-sizing: border-box;
+    }
+
+    #structura-editor button,
+    #structura-editor select {
+      font-family: inherit;
+    }
+
+    #structura-editor .se-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 10px;
+      background: #d7dde6;
+      border-bottom: 1px solid #aeb8c6;
+      box-shadow: inset 0 -1px 0 #c0c8d3;
+    }
+
+    #structura-editor .se-group {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding-right: 8px;
+      margin-right: 5px;
+      border-right: 1px solid #ddd;
+    }
+
+    #structura-editor button {
+      min-width: 32px;
+      height: 32px;
+      padding: 4px 8px;
+      background: #f8fafc;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #structura-editor button:hover {
+      background: #f1f3f4;
+      border-color: #c8d0da;
+    }
+
+    #structura-editor button.active {
+      background: #d2e3fc;
+      border-color: #8ab4f8;
+      color: #174ea6;
+    }
+
+    #structura-editor button[aria-pressed="true"] {
+      background: #d2e3fc;
+      border-color: #8ab4f8;
+      color: #174ea6;
+    }
+
+    #structura-editor .se-html-panel {
+      display: none;
+      padding: 12px;
+      background: #fff;
+      border-top: 1px solid #ddd;
+    }
+
+    #structura-editor .se-html-panel.visible {
+      display: block;
+    }
+
+    #structura-editor .se-html-output {
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+      padding: 12px;
+      border: 1px solid #c8cdd4;
+      border-radius: 6px;
+      font: 13px/1.5 Consolas, "Courier New", monospace;
+      background: #fbfcfe;
+    }
+
+    #structura-editor .se-html-options {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:10px 0;
+      flex-wrap:wrap;
+    }
+    #structura-editor .se-html-options select {
+      padding:7px 10px;
+      border:1px solid #b7c0cc;
+      border-radius:6px;
+      background:#fff;
+      color:#1f2937;
+    }
+
+    #structura-editor .se-html-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    #structura-editor .se-html-actions button {
+      border: 1px solid #c8cdd4;
+    }
+
+    #structura-editor select {
+      height: 32px;
+      border: 1px solid #c8cdd4;
+      border-radius: 4px;
+      padding: 0 5px;
+      background: white;
+    }
+
+    #structura-editor .se-font {
+      width: 120px;
+    }
+
+    #structura-editor .se-size {
+      width: 60px;
+    }
+
+    #structura-editor .se-color {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    #structura-editor input[type="color"] {
+      width: 30px;
+      height: 30px;
+      padding: 2px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    #structura-editor .se-workspace {
+      padding: 25px;
+      background: #eef1f5;
+      overflow-x: auto;
+    }
+
+    #structura-editor .se-page {
+      width: 794px;
+      max-width: 100%;
+      min-height: 900px;
+      margin: auto;
+      padding: 65px 75px;
+      background: white;
+      box-shadow: 0 2px 10px #0001;
+    }
+
+    #structura-editor .se-content {
+      min-height: 760px;
+      font-size: 16px;
+      line-height: 1.6;
+      outline: none;
+      overflow-wrap: break-word;
+    }
+
+    #structura-editor .se-content p {
+      margin: 0 0 12px;
+    }
+
+    /* PACE-style spacing: separate list items have full paragraph spacing.
+       Shift+Enter remains a normal line break inside the same item. */
+    #structura-editor .se-content li {
+      margin-bottom: 12px;
+    }
+
+    #structura-editor .se-content li:last-child {
+      margin-bottom: 0;
+    }
+
+    #structura-editor .se-content h1 {
+      font-size: 32px;
+      margin: 0 0 20px;
+    }
+
+    #structura-editor .se-content h2 {
+      font-size: 25px;
+      margin: 22px 0 12px;
+    }
+
+    #structura-editor .se-content h3 {
+      font-size: 20px;
+      margin: 18px 0 10px;
+    }
+
+    #structura-editor .se-content blockquote {
+      border-left: 4px solid #4285f4;
+      padding: 8px 15px;
+      margin: 15px 0;
+      background: #f5f8ff;
+      color: #5f6368;
+    }
+
+    #structura-editor .se-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+
+    #structura-editor .se-content td,
+    #structura-editor .se-content th {
+      border: 1px solid #bbb;
+      padding: 8px;
+    }
+
+    #structura-editor .se-content img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    #structura-editor .se-page-break {
+      break-before: page;
+      page-break-before: always;
+      border-top: 2px dashed #9ca3af;
+      margin: 30px 0;
+      padding-top: 25px;
+    }
+
+    #structura-editor .se-content ol.se-list-bold > li::marker,
+    #structura-editor .se-content ul.se-list-bold > li::marker {
+      font-weight: 700;
+    }
+
+    #structura-editor .se-content ol.se-list-italic > li::marker,
+    #structura-editor .se-content ul.se-list-italic > li::marker {
+      font-style: italic;
+    }
+
+    #structura-editor .se-content ol.se-list-bold.se-list-italic > li::marker,
+    #structura-editor .se-content ul.se-list-bold.se-list-italic > li::marker {
+      font-weight: 700;
+      font-style: italic;
+    }
+
+    #structura-editor .se-page-break::before {
+      content: "PAGE BREAK";
+      display: block;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #9ca3af;
+      margin-bottom: 15px;
+    }
+
+    #structura-editor .se-hint {
+      padding: 7px 12px;
+      font-size: 12px;
+      color: #6b7280;
+      background: #f8fafc;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    #structura-editor .se-status {
+      display: flex;
+      gap: 20px;
+      padding: 8px 15px;
+      background: #fff;
+      border-top: 1px solid #ddd;
+      font-size: 12px;
+      color: #555;
+    }
+
+    @media (max-width: 600px) {
+      #structura-editor .se-workspace {
+        padding: 10px;
+      }
+
+      #structura-editor .se-page {
+        padding: 30px;
+      }
+    }
+
+    @media print {
+      #structura-editor .se-toolbar,
+      #structura-editor .se-hint,
+      #structura-editor .se-status {
+        display: none;
+      }
+
+      #structura-editor .se-workspace {
+        padding: 0;
+      }
+
+      #structura-editor .se-page {
+        width: auto;
+        box-shadow: none;
+        padding: 0;
+      }
+    }
+  </style>
+
+  <!-- TOOLBAR -->
+  <div class="se-toolbar">
+
+    <!-- Undo / Redo -->
+    <div class="se-group">
+      <button type="button" data-cmd="undo" title="Undo">↶</button>
+      <button type="button" data-cmd="redo" title="Redo">↷</button>
+    </div>
+
+    <!-- Font -->
+    <div class="se-group">
+      <select class="se-font" id="se-font">
+        <option value="Arial">Arial</option>
+        <option value="Calibri">Calibri</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Courier New">Courier New</option>
+      </select>
+
+      <select class="se-size" id="se-size">
+        <option value="2">10</option>
+        <option value="3" selected>12</option>
+        <option value="4">14</option>
+        <option value="5">18</option>
+        <option value="6">24</option>
+        <option value="7">32</option>
+      </select>
+    </div>
+
+    <!-- Text Formatting -->
+    <div class="se-group">
+      <button type="button" id="se-bold" data-cmd="bold" title="Bold">
+        <b>B</b>
+      </button>
+
+      <button type="button" id="se-italic" data-cmd="italic" title="Italic">
+        <i>I</i>
+      </button>
+
+      <button type="button" id="se-underline" data-cmd="underline" title="Underline">
+        <u>U</u>
+      </button>
+
+      <button type="button" data-cmd="strikeThrough" title="Strikethrough">
+        <s>S</s>
+      </button>
+
+      <button type="button" data-cmd="superscript" title="Superscript">
+        x²
+      </button>
+
+      <button type="button" data-cmd="subscript" title="Subscript">
+        x₂
+      </button>
+    </div>
+
+    <!-- Colors -->
+    <div class="se-group">
+
+      <label class="se-color" title="Text color">
+        A
+        <input type="color" id="se-text-color" value="#202124">
+      </label>
+
+      <label class="se-color" title="Highlight color">
+        🖍
+        <input type="color" id="se-highlight" value="#fff2a8">
+      </label>
+
+    </div>
+
+    <!-- Alignment -->
+    <div class="se-group">
+
+      <button type="button" data-cmd="justifyLeft" title="Align left">
+        ≡
+      </button>
+
+      <button type="button" data-cmd="justifyCenter" title="Center">
+        ≡
+      </button>
+
+      <button type="button" data-cmd="justifyRight" title="Align right">
+        ≡
+      </button>
+
+      <button type="button" data-cmd="justifyFull" title="Justify">
+        ☰
+      </button>
+
+      <button type="button" data-cmd="outdent" title="Decrease indent">
+        ⇤
+      </button>
+
+      <button type="button" data-cmd="indent" title="Increase indent">
+        ⇥
+      </button>
+
+    </div>
+
+    <!-- Lists -->
+    <div class="se-group">
+
+      <button type="button" data-cmd="insertUnorderedList" title="Bullets">
+        •☰
+      </button>
+
+      <button type="button" id="se-numbering" data-cmd="insertOrderedList" title="Numbering">
+        1☰
+      </button>
+
+      <select id="se-list-style" title="Numbering type">
+        <option value="">List type</option>
+        <option value="decimal">1, 2, 3</option>
+        <option value="lower-alpha">a, b, c</option>
+        <option value="upper-alpha">A, B, C</option>
+        <option value="lower-roman">i, ii, iii</option>
+        <option value="upper-roman">I, II, III</option>
+      </select>
+
+      <button type="button" id="se-list-bold" title="Bold all list numbers/bullets">
+        <b>B#</b>
+      </button>
+
+      <button type="button" id="se-list-italic" title="Italic all list numbers/bullets">
+        <i>I#</i>
+      </button>
+
+    </div>
+
+    <!-- Insert -->
+    <div class="se-group">
+
+      <button type="button" id="se-link" title="Insert link">
+        🔗
+      </button>
+
+      <button type="button" id="se-image" title="Insert image">
+        🖼
+      </button>
+
+      <button type="button" id="se-table" title="Insert table">
+        ▦
+      </button>
+
+      <button type="button" id="se-quote" title="Quote">
+        ❝
+      </button>
+
+      <button type="button" id="se-page-break" title="Page break">
+        ↧▤
+      </button>
+
+      <button type="button" data-cmd="insertHorizontalRule" title="Horizontal line">
+        ―
+      </button>
+
+    </div>
+
+    <!-- Clear / HTML Body -->
+    <div class="se-group">
+      <button type="button" data-cmd="removeFormat" title="Clear formatting">
+        Tx
+      </button>
+
+      <button type="button" id="se-html-body" title="Convert content to HTML body">
+        &lt;/&gt; HTML Body
+      </button>
+    </div>
+
+  </div>
+
+  <!-- HTML BODY OUTPUT -->
+  <div id="se-html-panel" class="se-html-panel">
+    <textarea
+      id="se-html-output"
+      class="se-html-output"
+      spellcheck="false"
+      aria-label="HTML body output"
+      placeholder="HTML body output will appear here..."></textarea>
+<div class="se-html-actions">
+      <button type="button" id="se-copy-html">Copy HTML</button>
+      <button type="button" id="se-export-enter">Enter Format</button>
+      <button type="button" id="se-export-shift">Shift+Enter Format</button>
+      <button type="button" id="se-close-html">Close</button>
+    </div>
+  </div>
+
+  <!-- HINT -->
+  <div class="se-hint">
+    <b>Enter:</b> New paragraph
+    &nbsp; | &nbsp;
+    <b>Shift + Enter:</b> Line break
+    &nbsp; | &nbsp;
+    <b>Ctrl + Enter:</b> Page break
+    &nbsp; | &nbsp;
+    <b>Ctrl + B/I/U:</b> Formatting
+  </div>
+
+  <!-- DOCUMENT -->
+  <div class="se-workspace">
+
+    <div class="se-page">
+
+      <div
+        id="se-content"
+        class="se-content"
+        contenteditable="true"
+        spellcheck="true"
+      >
+        <h1>Welcome to Structura</h1>
+
+        <p>
+          Start writing your professional content here.
+          Use the toolbar to format your text.
+        </p>
+
+        <h2>Formatting Example</h2>
+
+        <p>
+          <strong>Bold text</strong>,
+          <em>Italic text</em>,
+          <u>Underlined text</u>
+        </p>
+
+        <ul>
+          <li>Bulleted point</li>
+          <li>Another point</li>
+        </ul>
+
+        <ol>
+          <li>Numbered point</li>
+          <li>Second numbered point</li>
+        </ol>
+
+        <blockquote>
+          Professional content should be clear and well structured.
+        </blockquote>
+
+        <p>
+          Replace this sample content with your own text.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- STATUS -->
+  <div class="se-status">
+    <span id="se-pages">Page 1</span>
+    <span id="se-words">Words 0</span>
+    <span>English (India)</span>
+  </div>
+  <!-- JAVASCRIPT -->
+  <script>
+    (() => {
+
+      const root = document.getElementById("structura-editor");
+      const editor = root.querySelector("#se-content");
+
+      let savedRange = null;
+      let liveHTMLMode = false;
+
+      /* ==========================
+         SELECTION MANAGEMENT
+      ========================== */
+
+      function saveSelection() {
+
+        const selection = window.getSelection();
+
+        if (
+          selection.rangeCount &&
+          editor.contains(selection.anchorNode)
+        ) {
+          savedRange = selection.getRangeAt(0).cloneRange();
+        }
+
+      }
+
+      function restoreSelection() {
+
+        if (!savedRange) return;
+
+        const selection = window.getSelection();
+
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+
+      }
+
+      function focusEditor() {
+        editor.focus();
+      }
+
+      function updateToolbarState() {
+
+        const commandMap = {
+          bold: "se-bold",
+          italic: "se-italic",
+          underline: "se-underline",
+          insertOrderedList: "se-numbering"
+        };
+
+        Object.entries(commandMap).forEach(([command, id]) => {
+          const button = root.querySelector("#" + id);
+          if (!button) return;
+
+          let active = false;
+
+          try {
+            active = document.queryCommandState(command);
+          } catch (error) {
+            active = false;
+          }
+
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+
+        updateListMarkerState();
+
+      }
+
+      function updateFontControls() {
+
+        try {
+          const font = document.queryCommandValue("fontName")
+            .replace(/["']/g, "")
+            .split(",")[0]
+            .trim();
+
+          const fontSelect = root.querySelector("#se-font");
+
+          if (font && [...fontSelect.options].some(option => option.value.toLowerCase() === font.toLowerCase())) {
+            fontSelect.value = [...fontSelect.options]
+              .find(option => option.value.toLowerCase() === font.toLowerCase()).value;
+          }
+        } catch (error) {}
+
+      }
+
+      function execute(command, value = null) {
+
+        focusEditor();
+        restoreSelection();
+
+        document.execCommand(command, false, value);
+
+        saveSelection();
+        updateToolbarState();
+        updateFontControls();
+        updateStatus();
+
+      }
+
+      /* ==========================
+         TOOLBAR COMMANDS
+      ========================== */
+
+      root.querySelectorAll("[data-cmd]").forEach(button => {
+
+        button.addEventListener("mousedown", event => {
+          event.preventDefault();
+        });
+
+        button.addEventListener("click", () => {
+
+          execute(button.dataset.cmd);
+
+        });
+
+      });
+
+      /* ==========================
+         FONT FAMILY
+      ========================== */
+
+      root.querySelector("#se-font").addEventListener("change", event => {
+
+        execute("fontName", event.target.value);
+
+      });
+
+      /* ==========================
+         FONT SIZE
+      ========================== */
+
+      root.querySelector("#se-size").addEventListener("change", event => {
+
+        execute("fontSize", event.target.value);
+
+      });
+
+      /* ==========================
+         TEXT COLOR
+      ========================== */
+
+      root.querySelector("#se-text-color").addEventListener("input", event => {
+
+        execute("foreColor", event.target.value);
+
+      });
+
+      /* ==========================
+         HIGHLIGHT
+      ========================== */
+
+      root.querySelector("#se-highlight").addEventListener("input", event => {
+
+        execute("hiliteColor", event.target.value);
+
+      });
+
+      /* ==========================
+         NUMBERING STYLE
+      ========================== */
+
+      root.querySelector("#se-list-style").addEventListener("change", event => {
+
+        const style = event.target.value;
+
+        if (!style) return;
+
+        focusEditor();
+        restoreSelection();
+
+        let node = window.getSelection().anchorNode;
+
+        while (
+          node &&
+          node !== editor &&
+          node.nodeName !== "OL" &&
+          node.nodeName !== "UL"
+        ) {
+          node = node.parentNode;
+        }
+
+        if (node && node.nodeName === "OL") {
+
+          node.style.listStyleType = style;
+
+        } else {
+
+          execute("insertOrderedList");
+
+          const selection = window.getSelection();
+
+          let current = selection.anchorNode;
+
+          while (
+            current &&
+            current !== editor &&
+            current.nodeName !== "OL"
+          ) {
+            current = current.parentNode;
+          }
+
+          if (current) {
+            current.style.listStyleType = style;
+          }
+
+        }
+
+        saveSelection();
+
+      });
+
+      /* ==========================
+         INSERT LINK
+      ========================== */
+
+      root.querySelector("#se-link").addEventListener("click", () => {
+
+        const url = prompt("Enter URL:");
+
+        if (url) {
+          execute("createLink", url);
+        }
+
+      });
+
+      /* ==========================
+         INSERT IMAGE
+      ========================== */
+
+      root.querySelector("#se-image").addEventListener("click", () => {
+
+        const url = prompt("Enter image URL:");
+
+        if (url) {
+          execute("insertImage", url);
+        }
+
+      });
+
+      /* ==========================
+         INSERT TABLE
+      ========================== */
+
+      root.querySelector("#se-table").addEventListener("click", () => {
+
+        const rows = parseInt(prompt("Number of rows:", "3"));
+        const cols = parseInt(prompt("Number of columns:", "3"));
+
+        if (!rows || !cols) return;
+
+        let html = "<table><tbody>";
+
+        for (let r = 0; r < rows; r++) {
+
+          html += "<tr>";
+
+          for (let c = 0; c < cols; c++) {
+            html += "<td>&nbsp;</td>";
+          }
+
+          html += "</tr>";
+
+        }
+
+        html += "</tbody></table>";
+
+        execute("insertHTML", html);
+
+      });
+
+      /* ==========================
+         INSERT QUOTE
+      ========================== */
+
+      root.querySelector("#se-quote").addEventListener("click", () => {
+
+        execute("formatBlock", "blockquote");
+
+      });
+
+      /* ==========================
+         PAGE BREAK
+      ========================== */
+
+      function insertPageBreak() {
+
+        focusEditor();
+        restoreSelection();
+
+        const selection = window.getSelection();
+
+        const pageBreak = document.createElement("div");
+
+        pageBreak.className = "se-page-break";
+
+        pageBreak.innerHTML = "<p><br></p>";
+
+        if (selection.rangeCount) {
+
+          const range = selection.getRangeAt(0);
+
+          range.deleteContents();
+
+          range.insertNode(pageBreak);
+
+          range.setStartAfter(pageBreak);
+          range.collapse(true);
+
+          selection.removeAllRanges();
+          selection.addRange(range);
+
+        } else {
+
+          editor.appendChild(pageBreak);
+
+        }
+
+        saveSelection();
+        updateStatus();
+
+      }
+
+      root.querySelector("#se-page-break").addEventListener(
+        "click",
+        insertPageBreak
+      );
+
+      /* ==========================
+         KEYBOARD SHORTCUTS
+      ========================== */
+
+      editor.addEventListener("keydown", event => {
+
+        // Ctrl + Enter = Page Break
+        if (event.ctrlKey && event.key === "Enter") {
+
+          event.preventDefault();
+
+          insertPageBreak();
+
+          return;
+
+        }
+
+        // Shift + Enter = Line Break
+        if (event.shiftKey && event.key === "Enter") {
+
+          event.preventDefault();
+
+          execute("insertLineBreak");
+
+          return;
+
+        }
+
+        // Ctrl + B / I / U
+        if (event.ctrlKey || event.metaKey) {
+
+          const key = event.key.toLowerCase();
+
+          const commands = {
+            b: "bold",
+            i: "italic",
+            u: "underline"
+          };
+
+          if (commands[key]) {
+
+            event.preventDefault();
+
+            execute(commands[key]);
+
+          }
+
+        }
+
+      });
+
+      /* ==========================
+         LIST MARKER FORMATTING
+      ========================== */
+
+      function getCurrentList() {
+        const selection = window.getSelection();
+
+        if (!selection.rangeCount) return null;
+
+        let node = selection.anchorNode;
+
+        if (node && node.nodeType === Node.TEXT_NODE) {
+          node = node.parentNode;
+        }
+
+        while (node && node !== editor) {
+          if (node.nodeName === "OL" || node.nodeName === "UL") {
+            return node;
+          }
+          node = node.parentNode;
+        }
+
+        return null;
+      }
+
+      function toggleListClass(className) {
+        focusEditor();
+        restoreSelection();
+
+        const list = getCurrentList();
+
+        if (!list) {
+          alert("Place the cursor inside a numbered or bulleted list first.");
+          return;
+        }
+
+        list.classList.toggle(className);
+
+        saveSelection();
+        updateToolbarState();
+      }
+
+      root.querySelector("#se-list-bold").addEventListener("mousedown", event => {
+        event.preventDefault();
+      });
+
+      root.querySelector("#se-list-italic").addEventListener("mousedown", event => {
+        event.preventDefault();
+      });
+
+      root.querySelector("#se-list-bold").addEventListener("click", () => {
+        toggleListClass("se-list-bold");
+      });
+
+      root.querySelector("#se-list-italic").addEventListener("click", () => {
+        toggleListClass("se-list-italic");
+      });
+
+      function updateListMarkerState() {
+        const list = getCurrentList();
+
+        const boldButton = root.querySelector("#se-list-bold");
+        const italicButton = root.querySelector("#se-list-italic");
+
+        const boldActive = !!(list && list.classList.contains("se-list-bold"));
+        const italicActive = !!(list && list.classList.contains("se-list-italic"));
+
+        boldButton.classList.toggle("active", boldActive);
+        italicButton.classList.toggle("active", italicActive);
+
+        boldButton.setAttribute("aria-pressed", String(boldActive));
+        italicButton.setAttribute("aria-pressed", String(italicActive));
+      }
+
+      /* ==========================
+         HTML BODY CONVERSION
+      ========================== */
+
+      const htmlPanel = root.querySelector("#se-html-panel");
+      const htmlOutput = root.querySelector("#se-html-output");
+
+      function escapeHTML(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      // Normalize textbook/PDF typography into keyboard-friendly characters.
+      function normalizeBookSymbols(text) {
+        return String(text)
+          .replace(/\u00A0/g, " ")
+          .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+          .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+          .replace(/[\u2013\u2014\u2212]/g, "-")
+          .replace(/\u2026/g, "...")
+          .replace(/\u00AD/g, "")
+          .replace(/[ \t]{2,}/g, " ");
+      }
+
+      // Remove accidental repeated spaces without destroying intentional line breaks.
+      function normalizeTextNodes(container) {
+        const walker = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode(node) {
+              const parent = node.parentElement;
+              if (!parent) return NodeFilter.FILTER_REJECT;
+              const tag = parent.tagName.toLowerCase();
+              if (["pre", "code", "textarea", "script", "style"].includes(tag)) {
+                return NodeFilter.FILTER_REJECT;
+              }
+              return NodeFilter.FILTER_ACCEPT;
+            }
+          }
+        );
+
+        const nodes = [];
+        let node;
+        while ((node = walker.nextNode())) nodes.push(node);
+
+        nodes.forEach(textNode => {
+          textNode.nodeValue = normalizeBookSymbols(textNode.nodeValue);
+        });
+
+        return container;
+      }
+
+      function normalizeSemanticTags(node) {
+        const walker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT);
+        const elements = [];
+        let current;
+
+        while ((current = walker.nextNode())) elements.push(current);
+
+        elements.forEach(element => {
+          const tag = element.tagName.toLowerCase();
+
+          if (tag === "b" || tag === "strong") {
+            if (tag === "b") {
+              const strong = document.createElement("strong");
+              strong.innerHTML = element.innerHTML;
+              [...element.attributes].forEach(attribute => strong.setAttribute(attribute.name, attribute.value));
+              element.replaceWith(strong);
+            }
+          }
+
+          if (tag === "i" || tag === "em") {
+            if (tag === "i") {
+              const em = document.createElement("em");
+              em.innerHTML = element.innerHTML;
+              [...element.attributes].forEach(attribute => em.setAttribute(attribute.name, attribute.value));
+              element.replaceWith(em);
+            }
+          }
+        });
+
+        return node;
+      }
+
+      function alphaNumber(number, uppercase) {
+        let result = "";
+        while (number > 0) {
+          number--;
+          result = String.fromCharCode(97 + (number % 26)) + result;
+          number = Math.floor(number / 26);
+        }
+        return uppercase ? result.toUpperCase() : result;
+      }
+
+      function romanNumber(number) {
+        const values = [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]];
+        let result = "";
+        values.forEach(([value, symbol]) => {
+          while (number >= value) {
+            result += symbol;
+            number -= value;
+          }
+        });
+        return result;
+      }
+
+      function getListMarker(list, index) {
+        if (list.tagName.toLowerCase() === "ul") return "•";
+
+        const type = list.getAttribute("type") || "1";
+        const number = index + 1;
+
+        if (type === "a") return alphaNumber(number, false) + ".";
+        if (type === "A") return alphaNumber(number, true) + ".";
+        if (type === "i") return romanNumber(number).toLowerCase() + ".";
+        if (type === "I") return romanNumber(number) + ".";
+        return number + ".";
+      }
+
+      function convertListsForPACE(container, mode = "enter") {
+        container.querySelectorAll("ol, ul").forEach(list => {
+          if (list.dataset.paceConverted === "true") return;
+          list.dataset.paceConverted = "true";
+
+          const items = [...list.children]
+            .filter(child => child.tagName.toLowerCase() === "li");
+
+          const fragment = document.createDocumentFragment();
+          let combinedParagraph = null;
+
+          items.forEach((item, index) => {
+            const paragraph = document.createElement("p");
+            paragraph.style.marginBottom = mode === "enter" ? "12px" : "0";
+
+            const markerText = getListMarker(list, index) + " ";
+            const markerBold = list.classList.contains("se-list-bold");
+            const markerItalic = list.classList.contains("se-list-italic");
+
+            let markerNode;
+            if (markerBold && markerItalic) {
+              markerNode = document.createElement("strong");
+              const emphasis = document.createElement("em");
+              emphasis.textContent = markerText;
+              markerNode.appendChild(emphasis);
+            } else if (markerBold) {
+              markerNode = document.createElement("strong");
+              markerNode.textContent = markerText;
+            } else if (markerItalic) {
+              markerNode = document.createElement("em");
+              markerNode.textContent = markerText;
+            } else {
+              markerNode = document.createTextNode(markerText);
+            }
+
+            paragraph.appendChild(markerNode);
+
+            [...item.childNodes].forEach(child => {
+              if (
+                child.nodeType === Node.ELEMENT_NODE &&
+                ["ol", "ul"].includes(child.tagName.toLowerCase())
+              ) return;
+
+              paragraph.appendChild(child.cloneNode(true));
+            });
+
+            if (mode === "shift") {
+              if (!combinedParagraph) {
+                combinedParagraph = document.createElement("p");
+                combinedParagraph.style.marginBottom = "0";
+              } else {
+                combinedParagraph.appendChild(document.createElement("br"));
+              }
+
+              while (paragraph.firstChild) {
+                combinedParagraph.appendChild(paragraph.firstChild);
+              }
+            } else {
+              fragment.appendChild(paragraph);
+            }
+          });
+
+          if (mode === "shift" && combinedParagraph) {
+            fragment.appendChild(combinedParagraph);
+          }
+
+          list.replaceWith(fragment);
+        });
+      }
+
+      function cleanPACEHTML(container) {
+        // Remove implementation details from exported HTML.
+        container.querySelectorAll("*").forEach(element => {
+          element.removeAttribute("class");
+          element.removeAttribute("id");
+          element.removeAttribute("data-pace-converted");
+
+          // Keep meaningful inline styling, but remove editor-only spacing.
+          if (element.hasAttribute("style")) {
+            const style = element.getAttribute("style")
+              .replace(/margin-bottom\s*:\s*[^;]+;?/gi, "")
+              .trim();
+
+            if (style) {
+              element.setAttribute("style", style);
+            } else {
+              element.removeAttribute("style");
+            }
+          }
+
+          // PACE output uses semantic paragraph elements instead of divs.
+          if (element.tagName.toLowerCase() === "div") {
+            const paragraph = document.createElement("p");
+            [...element.attributes].forEach(attribute => {
+              if (attribute.name === "style") {
+                paragraph.setAttribute("style", attribute.value);
+              }
+            });
+
+            while (element.firstChild) {
+              paragraph.appendChild(element.firstChild);
+            }
+
+            element.replaceWith(paragraph);
+          }
+        });
+
+        // Remove empty paragraphs created by editor operations.
+        container.querySelectorAll("p").forEach(paragraph => {
+          if (!paragraph.textContent.trim() && !paragraph.querySelector("br")) {
+            paragraph.remove();
+          }
+        });
+
+        return container;
+      }
+
+      function formatHTMLForOutput(html) {
+        const parsed = new DOMParser()
+          .parseFromString(`<body>${html}</body>`, "text/html")
+          .body;
+
+        // Ensure plain text at the beginning is always placed inside <p>.
+        // This prevents output such as: text, <br>, text, <p>...</p>.
+        const originalNodes = [...parsed.childNodes];
+        let currentParagraph = null;
+
+        originalNodes.forEach(node => {
+          const isText = node.nodeType === Node.TEXT_NODE &&
+            node.textContent.trim().length > 0;
+          const isBreak = node.nodeType === Node.ELEMENT_NODE &&
+            node.tagName.toLowerCase() === "br";
+
+          if (isText || isBreak) {
+            if (!currentParagraph) {
+              currentParagraph = document.createElement("p");
+              parsed.insertBefore(currentParagraph, node);
+            }
+            currentParagraph.appendChild(node);
+          } else {
+            currentParagraph = null;
+          }
+        });
+
+        const inlineTags = new Set([
+          "strong", "b", "em", "i", "u", "s", "strike",
+          "sup", "sub", "span", "a", "br", "small"
+        ]);
+
+        function serialize(node, depth = 0) {
+          const indent = "  ".repeat(depth);
+
+          if (node.nodeType === Node.TEXT_NODE) {
+            return normalizeBookSymbols(node.nodeValue)
+              .replace(/\s+/g, " ");
+          }
+
+          if (node.nodeType !== Node.ELEMENT_NODE) return "";
+
+          const tag = node.tagName.toLowerCase();
+          const attrs = [...node.attributes]
+            .map(attribute => {
+              const value = attribute.value.replace(/"/g, "&quot;");
+              return ` ${attribute.name}="${value}"`;
+            })
+            .join("");
+
+          if (tag === "br") return `${indent}<br>`;
+
+          const children = [...node.childNodes]
+            .map(child => serialize(child, depth + 1))
+            .filter(Boolean);
+
+          if (inlineTags.has(tag)) {
+            return `<${tag}${attrs}>${children.join("")}</${tag}>`;
+          }
+
+          if (!children.length) {
+            return `${indent}<${tag}${attrs}></${tag}>`;
+          }
+
+          return [
+            `${indent}<${tag}${attrs}>`,
+            ...children.map(child => {
+              if (child.includes("\n")) return child;
+              return `${"  ".repeat(depth + 1)}${child}`;
+            }),
+            `${indent}</${tag}>`
+          ].join("\n");
+        }
+
+        return [...parsed.childNodes]
+          .map(node => serialize(node, 0))
+          .filter(Boolean)
+          .join("\n")
+          .trim();
+      }
+
+      let currentPACEExportMode = "enter";
+
+      function refreshHTMLBodyIfOpen() {
+        if (liveHTMLMode && htmlPanel.classList.contains("visible")) {
+          convertToHTMLBody(false, currentPACEExportMode);
+        }
+      }
+
+      function convertToHTMLBody(openPanel = true, mode = "enter") {
+        currentPACEExportMode = mode;
+        const clone = editor.cloneNode(true);
+        normalizeTextNodes(clone);
+        normalizeSemanticTags(clone);
+        convertListsForPACE(clone, mode);
+        normalizeTextNodes(clone);
+
+        // Convert legacy font tags into clean inline span styling.
+        clone.querySelectorAll("font").forEach(font => {
+          const span = document.createElement("span");
+
+          if (font.color) span.style.color = font.color;
+          if (font.face) span.style.fontFamily = font.face;
+          if (font.size) span.style.fontSize = font.size;
+
+          span.innerHTML = font.innerHTML;
+          font.replaceWith(span);
+        });
+
+        cleanPACEHTML(clone);
+        normalizeTextNodes(clone);
+
+        // Export only clean body HTML: no comments, editor classes, IDs, or div wrappers.
+        htmlOutput.value = formatHTMLForOutput(clone.innerHTML.trim())
+          .replace(/[ \t]{2,}/g, " ");
+
+        if (openPanel) htmlPanel.classList.add("visible");
+      }
+
+      root.querySelector("#se-html-body").addEventListener("click", () => {
+        saveSelection();
+        liveHTMLMode = true;
+        convertToHTMLBody(true);
+      });
+
+      root.querySelector("#se-export-enter").addEventListener("click", () => {
+        convertToHTMLBody(false, "enter");
+      });
+
+      root.querySelector("#se-export-shift").addEventListener("click", () => {
+        convertToHTMLBody(false, "shift");
+      });
+
+      root.querySelector("#se-copy-html").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(htmlOutput.value);
+        } catch (error) {
+          htmlOutput.focus();
+          htmlOutput.select();
+          document.execCommand("copy");
+        }
+
+        const copyButton = root.querySelector("#se-copy-html");
+        const originalText = copyButton.textContent;
+        copyButton.textContent = "Copied!";
+        setTimeout(() => {
+          copyButton.textContent = originalText;
+        }, 1200);
+      });
+
+      root.querySelector("#se-close-html").addEventListener("click", () => {
+        liveHTMLMode = false;
+        htmlPanel.classList.remove("visible");
+      });
+/* ==========================
+         SELECTION EVENTS
+      ========================== */
+
+      editor.addEventListener("mouseup", () => {
+        saveSelection();
+        updateToolbarState();
+        updateFontControls();
+      });
+
+      editor.addEventListener("keyup", () => {
+        saveSelection();
+        updateToolbarState();
+        updateFontControls();
+      });
+
+      document.addEventListener("selectionchange", () => {
+        const selection = window.getSelection();
+
+        if (
+          selection.rangeCount &&
+          editor.contains(selection.anchorNode)
+        ) {
+          updateToolbarState();
+          updateFontControls();
+        }
+      });
+
+      root.querySelectorAll('input[type="color"], select').forEach(control => {
+        control.addEventListener("mousedown", saveSelection);
+      });
+
+      editor.addEventListener("paste", event => {
+        // Keep rich-text paste, then normalize symbols/spaces after insertion.
+        setTimeout(() => {
+          normalizeTextNodes(editor);
+          updateStatus();
+          refreshHTMLBodyIfOpen();
+        }, 0);
+      });
+
+      editor.addEventListener("input", () => {
+        updateStatus();
+        updateToolbarState();
+        updateFontControls();
+        refreshHTMLBodyIfOpen();
+      });
+
+      /* ==========================
+         WORD COUNT / PAGE COUNT
+      ========================== */
+
+      function updateStatus() {
+
+        const text = editor.innerText.trim();
+
+        const words = text
+          ? text.split(/\s+/).length
+          : 0;
+
+        const pages =
+          editor.querySelectorAll(".se-page-break").length + 1;
+
+        root.querySelector("#se-words").textContent =
+          "Words " + words;
+
+        root.querySelector("#se-pages").textContent =
+          "Page " + pages;
+
+      }
+
+      updateStatus();
+      updateToolbarState();
+      updateFontControls();
+
+    })();
+  </script>
+
+</div>
+<!-- STRUCTURA EDITOR END -->
+</body>
+
+</html>
