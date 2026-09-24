@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TN Helper Tool</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #f5f7ff, #eef6ff);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: 30px auto;
+      padding: 24px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+      padding: 18px 20px 22px;
+      min-height: 90vh;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 520px;
+      resize: vertical;
+      border: 0;
+      border-radius: 0 0 12px 12px;
+      padding: 16px;
+      font-size: 1rem;
+      line-height: 1.7;
+      outline: none;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .workspace-pane {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .pane-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      padding: 10px 14px;
+      background: #f8fafc;
+      border-bottom: 1px solid #cbd5e1;
+      color: #334155;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .code-pane {
+      border-color: #0f172a;
+      background: #0f172a;
+    }
+
+    .code-pane .pane-header {
+      background: #1e293b;
+      border-bottom-color: #334155;
+      color: #cbd5e1;
+    }
+
+    .code-pane textarea {
+      display: block;
+      min-height: 600px;
+      background: #0f172a;
+      color: #e2e8f0;
+      caret-color: #7dd3fc;
+      font-family: Consolas, "Cascadia Code", monospace;
+      font-size: 0.95rem;
+      tab-size: 2;
+    }
+
+    .code-pane textarea:focus {
+      box-shadow: inset 0 0 0 2px #38bdf8;
+    }
+
+    .preview-pane {
+      background: #ffffff;
+    }
+
+    .preview-frame {
+      display: block;
+      width: 100%;
+      min-height: 600px;
+      border: 0;
+      background: #ffffff;
+    }
+
+    textarea::placeholder {
+      color: #64748b;
+    }
+
+    @media (max-width: 900px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .code-pane textarea,
+      .preview-frame {
+        min-height: 420px;
+      }
+
+      .shortcuts,
+      .guide-panel {
+        left: 12px;
+        right: 12px;
+        top: 78px;
+        width: auto;
+        max-height: calc(100vh - 94px);
+      }
+    }
+
+    .header-toolbar {
+      position: sticky;
+      top: 10px;
+      z-index: 25;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      margin: 0 0 16px;
+      background: linear-gradient(180deg, #f7f8ff 0%, #eef2ff 100%);
+      border: 1px solid #dfe7ff;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(49, 46, 129, 0.06);
+    }
+
+    .toolbar-topline {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .toolbar-topline button {
+      min-width: 34px;
+      height: 30px;
+      padding: 4px 8px;
+      font-size: 0.78rem;
+    }
+
+    .header-toolbar button,
+    .header-toolbar .group button {
+      border: 1px solid #334155;
+      background: #ffffff;
+      color: #1e293b;
+      border-radius: 999px;
+      min-width: 42px;
+      height: 36px;
+      padding: 6px 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+      text-align: center;
+    }
+
+    .header-toolbar button:hover,
+    .header-toolbar .group button:hover {
+      background: #1e293b;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .header-toolbar button:focus-visible {
+      outline: 3px solid rgba(59, 130, 246, 0.35);
+      outline-offset: 2px;
+    }
+
+    .header-toolbar .group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+      align-content: flex-start;
+      padding: 0 8px;
+      border-right: 1px solid #cbd5e1;
+    }
+
+    .toolbar-label {
+      order: 3;
+      width: 100%;
+      color: #64748b;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 2px;
+      text-align: center;
+    }
+
+    .header-toolbar .group > button,
+    .header-toolbar .group > select,
+    .header-toolbar .group > .table-controls {
+      order: 1;
+    }
+
+    .header-toolbar .group:last-of-type {
+      border-right: 0;
+    }
+
+    .ribbon-divider {
+      width: 1px;
+      height: 32px;
+      background: #cbd5e1;
+      margin: 0 2px;
+    }
+
+    .library-wrap {
+      position: relative;
+      order: 1;
+    }
+
+    .library-wrap > button {
+      min-width: 58px;
+      border-radius: 4px;
+      background: #f8fafc;
+      border-color: #94a3b8;
+      box-shadow: inset 0 -2px 0 #e2e8f0;
+    }
+
+    .library-wrap > button:hover {
+      background: #dbeafe;
+      color: #1e3a8a;
+      border-color: #2563eb;
+    }
+
+    .library-menu {
+      position: absolute;
+      top: 44px;
+      left: 0;
+      z-index: 40;
+      display: none;
+      width: 310px;
+      padding: 10px;
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 8px;
+      box-shadow: 0 14px 28px rgba(15, 23, 42, 0.2);
+    }
+
+    .library-menu.show {
+      display: block;
+    }
+
+    .library-title {
+      padding: 6px 8px;
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .library-weight-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 0 2px;
+      color: #475569;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .weight-option {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #ffffff;
+      color: #334155;
+      padding: 4px 7px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .weight-option.active,
+    .weight-option:hover {
+      border-color: #2563eb;
+      background: #dbeafe;
+      color: #1e3a8a;
+    }
+
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .library-option {
+      min-height: 58px;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      font-size: 1.05rem;
+      line-height: 1.35;
+      text-align: left;
+      white-space: pre-line;
+    }
+
+    .library-option:hover {
+      background: #dbeafe;
+      border-color: #2563eb;
+    }
+
+    .header-toolbar .smart {
+      margin-left: auto;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .header-toolbar .smart > button {
+      min-width: 0;
+      height: 32px;
+      padding: 5px 10px;
+      font-size: 0.88rem;
+    }
+
+    .header-toolbar .smart input[type="color"] {
+      width: 32px;
+      height: 30px;
+    }
+
+    .header-toolbar .toolbar-topline > button {
+      min-width: 34px;
+      height: 30px;
+      padding: 4px 8px;
+      font-size: 0.78rem;
+    }
+
+    .list-style-select {
+      height: 36px;
+      border: 1px solid #334155;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #1e293b;
+      padding: 0 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .list-style-select:focus-visible {
+      outline: 3px solid rgba(59, 130, 246, 0.35);
+      outline-offset: 2px;
+    }
+
+    .table-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .table-action-select,
+    .table-size-input {
+      height: 36px;
+      border: 1px solid #334155;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #1e293b;
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .table-action-select {
+      min-width: 150px;
+      padding: 0 12px;
+    }
+
+    .table-size-input {
+      width: 48px;
+      padding: 0 8px;
+      text-align: center;
+    }
+
+    .table-count-label {
+      color: #475569;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .table-action-select:focus-visible,
+    .table-size-input:focus-visible {
+      outline: 3px solid rgba(59, 130, 246, 0.35);
+      outline-offset: 2px;
+    }
+
+    .find-panel {
+      display: none;
+      gap: 8px;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #dfe7ff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-top: 8px;
+    }
+
+    .find-panel.show {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .find-panel input {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 8px 10px;
+      min-width: 180px;
+    }
+
+    .find-panel button {
+      border: none;
+      border-radius: 8px;
+      background: #e0e7ff;
+      color: #1e1b4b;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    input[type="color"] {
+      width: 40px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .shortcuts {
+      position: fixed;
+      top: 88px;
+      right: 18px;
+      z-index: 35;
+      width: min(380px, calc(100vw - 36px));
+      max-height: calc(100vh - 110px);
+      overflow-y: auto;
+      margin: 0;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: all 0.2s ease;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+    }
+
+    .shortcuts.hidden {
+      display: none;
+    }
+
+    .guide-panel {
+      position: fixed;
+      top: 88px;
+      left: 18px;
+      z-index: 35;
+      width: min(420px, calc(100vw - 36px));
+      max-height: calc(100vh - 110px);
+      overflow-y: auto;
+      margin: 0;
+      padding: 18px 20px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      color: #334155;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+    }
+
+    .guide-panel.hidden {
+      display: none;
+    }
+
+    .guide-panel h2,
+    .guide-panel h3 {
+      margin: 0 0 8px;
+      color: #0f172a;
+    }
+
+    .guide-panel h3 {
+      margin-top: 16px;
+      font-size: 0.95rem;
+    }
+
+    .guide-panel p {
+      margin: 6px 0;
+      line-height: 1.55;
+    }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px 22px;
+    }
+
+    .shortcut-symbols {
+      display: none;
+      margin-top: 18px;
+    }
+
+    .shortcut-symbols.show {
+      display: block;
+    }
+
+    .footer {
+      margin-top: 16px;
+      color: #64748b;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .popup {
+      position: fixed;
+      background: #ffffff;
+      border: 1px solid #dfe7ff;
+      box-shadow: 0 15px 35px rgba(31, 41, 55, 0.15);
+      border-radius: 12px;
+      padding: 14px 16px;
+      min-width: 220px;
+      max-width: 280px;
+      z-index: 50;
+      display: none;
+      color: #1f2937;
+    }
+
+    .popup.show {
+      display: block;
+    }
+
+    .popup strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #312e81;
+    }
+
+    .symbol-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px 16px;
+      margin-top: 12px;
+    }
+
+    .numbered-bold > li::marker {
+      font-weight: 700;
+    }
+
+    .numbered-normal > li::marker {
+      font-weight: 400;
+    }
+
+    .marker-star > li::marker { content: "* "; }
+    .marker-diamond > li::marker { content: "◆ "; }
+    .marker-arrow > li::marker { content: "➤ "; }
+    .marker-check > li::marker { content: "✓ "; }
+    .numbered-parenthesis > li::marker { content: counter(list-item) ") "; }
+
+    .symbol-box {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #1e293b;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .symbol-box:hover {
+      background: #eef2ff;
+      border-color: #64748b;
+    }
+
+    .shortcuts h3 {
+      margin-top: 0;
+    }
+
+    .shortcuts ul {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.9;
+    }
+
+    code {
+      background: #eef2ff;
+      color: #1e1b4b;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-weight: 700;
+    }
+
+    :root {
+      --ink: #0b1220;
+      --ink-soft: #172235;
+      --teal: #14b8a6;
+      --teal-dark: #0f766e;
+      --coral: #f97316;
+      --paper: #f8fafc;
+      --line: #d5dee8;
+      --muted: #64748b;
+    }
+
+    body {
+      background: radial-gradient(circle at 12% 8%, rgba(20, 184, 166, 0.16), transparent 30%), linear-gradient(135deg, #eef4f6 0%, #f8fafc 52%, #fff7ed 100%);
+      color: var(--ink);
+    }
+
+    .container {
+      max-width: 1660px;
+      margin: 22px auto;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.38);
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(12px);
+    }
+
+    h1 {
+      color: var(--ink);
+      letter-spacing: -0.04em;
+    }
+
+    .header-toolbar {
+      background: linear-gradient(135deg, #ffffff 0%, #edf8f7 100%);
+      border-color: #b9d9d5;
+      box-shadow: 0 10px 24px rgba(15, 118, 110, 0.1);
+    }
+
+    .header-toolbar button,
+    .header-toolbar .group button,
+    .list-style-select,
+    .table-action-select,
+    .table-size-input {
+      border-color: #9aabbc;
+      border-radius: 9px;
+      color: var(--ink);
+      background: #ffffff;
+    }
+
+    .header-toolbar button:hover,
+    .header-toolbar .group button:hover {
+      background: var(--teal-dark);
+      border-color: var(--teal-dark);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(15, 118, 110, 0.22);
+    }
+
+    .toolbar-label {
+      color: var(--teal-dark);
+    }
+
+    .library-wrap > button,
+    #insertTableBtn,
+    #headingApplyBtn,
+    #tableActionBtn {
+      background: var(--ink-soft);
+      border-color: var(--ink-soft);
+      color: #ffffff;
+    }
+
+    .library-wrap > button:hover,
+    #insertTableBtn:hover,
+    #headingApplyBtn:hover,
+    #tableActionBtn:hover {
+      background: var(--coral);
+      border-color: var(--coral);
+    }
+
+    .workspace-pane {
+      border-color: var(--line);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+    }
+
+    .code-pane {
+      border-color: var(--ink);
+      background: var(--ink);
+    }
+
+    .code-pane .pane-header {
+      background: var(--ink-soft);
+      border-bottom-color: #304057;
+    }
+
+    .preview-pane .pane-header {
+      background: #fff7ed;
+      border-bottom-color: #fed7aa;
+      color: #9a3412;
+    }
+
+    .find-panel,
+    .guide-panel,
+    .shortcuts {
+      border-color: #b9d9d5;
+      background: var(--paper);
+    }
+
+    .footer {
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="popup" id="helpPopup">
+    <strong id="popupTitle">Help</strong>
+    <span id="popupText">Click a button to see shortcut details.</span>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h1>TN Helper Tool</h1>
+
+      <div class="header-toolbar" id="toolbar">
+        <div class="toolbar-topline">
+          <button type="button" id="toggleShortcutsBtn" title="Show shortcuts">👁‍🗨</button>
+          <button type="button" id="symbolConverterBtn" title="Show keyboard symbol converter">SC</button>
+          <button type="button" id="guideBtn" title="Open tool guide">Guide</button>
+        </div>
+
+        <div class="group">
+          <span class="toolbar-label">Text</span>
+          <button data-tag="b" data-help="Bold (&lt;b&gt;): Ctrl + B"><strong>B</strong></button>
+          <button data-tag="i" data-help="Italic (&lt;i&gt;): Ctrl + I"><em>I</em></button>
+          <button data-tag="u" data-help="Underline (&lt;u&gt;): Ctrl + U"><u>U</u></button>
+          <button data-tag="strong" data-help="Strong (&lt;strong&gt;): Ctrl + Shift + B"><strong>S</strong></button>
+          <button data-tag="em" data-help="Emphasis (&lt;em&gt;): Ctrl + Shift + I"><em>E</em></button>
+          <button data-tag="span" data-help="Span (&lt;span&gt;): Ctrl + Shift + S">⌗</button>
+          <button data-tag="s" data-help="Strikethrough (&lt;s&gt;)"><s>ab</s></button>
+          <button data-tag="sub" data-help="Subscript (&lt;sub&gt;)">X₂</button>
+          <button data-tag="sup" data-help="Superscript (&lt;sup&gt;)">X²</button>
+        </div>
+
+        <div class="group">
+          <span class="toolbar-label">Lists</span>
+          <div class="library-wrap">
+            <button type="button" id="bulletLibraryBtn" title="Bullet Library">•⌄</button>
+            <div class="library-menu" id="bulletLibraryMenu">
+              <div class="library-title">Bullet Library</div>
+              <div class="library-grid">
+                <button class="library-option" data-library-type="ul" data-library-style="none">None</button>
+                <button class="library-option" data-library-type="ul" data-library-style="disc">•
+                  Item</button>
+                <button class="library-option" data-library-type="ul" data-library-style="circle">○
+                  Item</button>
+                <button class="library-option" data-library-type="ul" data-library-style="square">▪
+                  Item</button>
+                <button class="library-option" data-library-type="ul" data-library-marker="star">* Item</button>
+                <button class="library-option" data-library-type="ul" data-library-marker="diamond">◆ Item</button>
+                <button class="library-option" data-library-type="ul" data-library-marker="arrow">➤ Item</button>
+                <button class="library-option" data-library-type="ul" data-library-marker="check">✓ Item</button>
+              </div>
+            </div>
+          </div>
+          <div class="library-wrap">
+            <button type="button" id="numberLibraryBtn" title="Numbering Library">1.⌄</button>
+            <div class="library-menu" id="numberLibraryMenu">
+              <div class="library-title">Numbering Library</div>
+              <div class="library-weight-row">
+                <span>Number weight</span>
+                <button type="button" class="weight-option active" data-marker-weight="normal">1. Normal</button>
+                <button type="button" class="weight-option" data-marker-weight="bold">1. Bold</button>
+              </div>
+              <div class="library-grid">
+                <button class="library-option" data-library-type="ol" data-library-style="none">None</button>
+                <button class="library-option" data-library-type="ol" data-library-style="decimal">1.
+                  2.
+                  3.</button>
+                <button class="library-option" data-library-type="ol" data-library-style="decimal-parenthesis">1)
+                  2)
+                  3)</button>
+                <button class="library-option" data-library-type="ol" data-library-style="upper-alpha">A.
+                  B.
+                  C.</button>
+                <button class="library-option" data-library-type="ol" data-library-style="lower-alpha">a.
+                  b.
+                  c.</button>
+                <button class="library-option" data-library-type="ol" data-library-style="upper-roman">I.
+                  II.
+                  III.</button>
+                <button class="library-option" data-library-type="ol" data-library-style="lower-roman">i.
+                  ii.
+                  iii.</button>
+                <button class="library-option" data-library-type="ol" data-library-style="multilevel">1.
+                  1.1
+                  1.1.1</button>
+              </div>
+            </div>
+          </div>
+          <button data-tag="ul" data-help="Bullet list (&lt;ul&gt;): Ctrl + Shift + 8">•</button>
+          <button data-tag="ol" data-help="Numbered list (&lt;ol&gt;): Ctrl + Shift + 7">1.</button>
+          <button data-tag="sub-ul" data-help="Nested bullet list: use Tab-style indent">•↳</button>
+          <button data-tag="sub-ol" data-help="Nested numbered list: use Tab-style indent">1.↳</button>
+          <select id="listStyleSelect" class="list-style-select" title="Choose list format" aria-label="Choose list format">
+            <option value="disc">• Bullet</option>
+            <option value="circle">○ Bullet</option>
+            <option value="square">▪ Bullet</option>
+            <option value="decimal">1. Number</option>
+            <option value="upper-alpha">A. Number</option>
+            <option value="lower-alpha">a. Number</option>
+            <option value="upper-roman">I. Number</option>
+            <option value="lower-roman">i. Number</option>
+          </select>
+          <select id="markerStyleSelect" class="list-style-select" title="Choose number marker weight" aria-label="Choose number marker weight">
+            <option value="normal">1. Normal</option>
+            <option value="bold">1. Bold</option>
+          </select>
+          <button data-tag="br" data-help="Line break (&lt;br&gt;): Ctrl + Enter">↵</button>
+          <button data-tag="hr" data-help="Horizontal rule (&lt;hr&gt;)">―</button>
+        </div>
+
+        <div class="group">
+          <span class="toolbar-label">Paragraph</span>
+          <button data-align="left" data-help="Align left">☰</button>
+          <button data-align="center" data-help="Align center">≡</button>
+          <button data-align="right" data-help="Align right">☷</button>
+          <button data-align="justify" data-help="Justify text">▤</button>
+          <button data-indent="outdent" data-help="Decrease indent">⇤</button>
+          <button data-indent="indent" data-help="Increase indent">⇥</button>
+        </div>
+
+        <div class="group">
+          <span class="toolbar-label">Table</span>
+          <div class="table-controls">
+            <button type="button" id="insertTableBtn" title="Insert table with the selected rows and columns">Table</button>
+            <select id="tableActionSelect" class="table-action-select" title="More table actions" aria-label="More table actions">
+              <option value="" selected disabled>More...</option>
+              <option value="insert-row">Insert row</option>
+              <option value="insert-column">Insert column</option>
+              <option value="insert-cell">Insert cell</option>
+            </select>
+            <label class="table-count-label" for="tableRowsInput">Rows</label>
+            <input id="tableRowsInput" class="table-size-input" type="number" min="1" max="20" value="3" aria-label="Number of rows" title="Number of rows" />
+            <span id="tableDimensionSeparator" aria-hidden="true">×</span>
+            <label class="table-count-label" for="tableColsInput">Columns</label>
+            <input id="tableColsInput" class="table-size-input" type="number" min="1" max="20" value="3" aria-label="Number of columns" title="Number of columns" />
+            <button type="button" id="tableActionBtn" title="Apply advanced table action">Apply</button>
+          </div>
+          <span class="toolbar-label">Heading</span>
+          <select id="headingSelect" class="list-style-select" title="Choose heading level" aria-label="Choose heading level">
+            <option value="p">Paragraph</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+            <option value="h4">Heading 4</option>
+            <option value="h5">Heading 5</option>
+            <option value="h6">Heading 6</option>
+          </select>
+          <button type="button" id="headingApplyBtn" title="Apply selected heading">Apply</button>
+        </div>
+
+        <div class="smart">
+          <button type="button" id="findBtn" title="Find and replace text">Find</button>
+          <button type="button" id="clearAllBtn" title="Permanently remove all editor text">Clear All</button>
+          <button type="button" id="formatCleanBtn" data-help="Preitter: format all HTML cleanly with readable indentation" title="Format all HTML cleanly">Preitter</button>
+          <input type="color" id="textColorPicker" value="#1f2937" title="Text color" />
+          <input type="color" id="highlightPicker" value="#fff3b0" title="Highlight color" />
+        </div>
+      </div>
+
+      <div class="workspace">
+        <section class="workspace-pane code-pane" aria-label="HTML code editor">
+          <div class="pane-header"><span>Wrap text</span><span>HTML</span></div>
+          <textarea id="editor" aria-label="HTML code editor" placeholder="Type HTML here..."></textarea>
+        </section>
+
+        <section class="workspace-pane preview-pane" aria-label="HTML preview">
+          <div class="pane-header"><span>Preview</span><span>Live</span></div>
+          <iframe id="previewFrame" class="preview-frame" title="Rendered HTML preview" sandbox=""></iframe>
+        </section>
+      </div>
+
+      <div class="find-panel" id="findPanel">
+        <input type="text" id="findInput" placeholder="Find text" />
+        <input type="text" id="replaceInput" placeholder="Replace with" />
+        <button type="button" id="findNextBtn">Find</button>
+        <button type="button" id="replaceBtn">Replace</button>
+        <button type="button" id="replaceAllBtn">Replace All</button>
+        <button type="button" id="closeFindBtn">Close</button>
+      </div>
+
+      <section class="guide-panel hidden" id="guidePanel" aria-label="TN Helper Tool guide">
+        <h2>TN Helper Tool Guide</h2>
+        <p>Type or paste HTML in the dark <strong>Wrap text</strong> panel. The <strong>Preview</strong> panel renders the result immediately.</p>
+
+        <h3>Text formatting</h3>
+        <div class="guide-grid">
+          <p><strong>B</strong>, <em>I</em>, <u>U</u>, <strong>S</strong>, <em>E</em>, and <s>ab</s> wrap selected text with bold, italic, underline, strong, emphasis, and strike tags.</p>
+          <p><strong>X₂</strong> and <strong>X²</strong> apply subscript and superscript. <strong>⌗</strong> applies a span.</p>
+          <p>The color controls apply text color or highlight to the current selection.</p>
+          <p>Paragraph controls align selected content left, center, right, or justified and change indentation.</p>
+        </div>
+
+        <h3>Lists</h3>
+        <div class="guide-grid">
+          <p><strong>Bullet Library</strong> offers disc, circle, square, star, diamond, arrow, and checkmark bullets.</p>
+          <p><strong>Numbering Library</strong> offers decimal, alphabetic, Roman, parenthesis, and multilevel numbering.</p>
+          <p>Choose <strong>1. Normal</strong> or <strong>1. Bold</strong> before applying a numbered list. The default is normal.</p>
+          <p>Use the nested bullet or nested number controls when sub-items are needed.</p>
+        </div>
+
+        <h3>Tables and utilities</h3>
+        <div class="guide-grid">
+          <p><strong>Table</strong> inserts an m × n table using the row and column fields. <strong>More</strong> handles row, column, cell, and table changes.</p>
+          <p><strong>Heading</strong> applies Paragraph or Heading 1–6 to selected text.</p>
+          <p><strong>Find</strong> searches and replaces text. <strong>Clear All</strong> permanently empties the editor. <strong>Preitter</strong> formats HTML indentation.</p>
+          <p><strong>SC</strong> opens keyboard symbol conversion. The eye button opens shortcut keys.</p>
+        </div>
+      </section>
+
+      <div class="shortcuts hidden">
+        <h3>Shortcut keys</h3>
+        <ul>
+          <li><code>Ctrl + B</code> = Bold</li>
+          <li><code>Ctrl + I</code> = Italic</li>
+          <li><code>Ctrl + U</code> = Underline</li>
+          <li><code>Ctrl + Shift + B</code> = Strong</li>
+          <li><code>Ctrl + Shift + I</code> = Em</li>
+          <li><code>Ctrl + Shift + S</code> = Span</li>
+          <li><code>Ctrl + Shift + 8</code> = Bullet list</li>
+          <li><code>Ctrl + Shift + 7</code> = Numbered list</li>
+          <li><code>Ctrl + Alt + P</code> = Paragraph</li>
+          <li><code>Ctrl + Alt + 1..6</code> = H1 to H6</li>
+          <li><code>Ctrl + Alt + T</code> = Table</li>
+          <li><code>Ctrl + Enter</code> = BR</li>
+          <li><code>Ctrl + Shift + Space</code> = Non-breaking space</li>
+        </ul>
+
+        <div class="shortcut-symbols" id="symbolPanel">
+          <h3>Keyboard symbols</h3>
+          <div class="symbol-grid">
+            <button class="symbol-box" data-tag="amp" data-help="Insert ampersand: &amp;">&amp;</button>
+            <button class="symbol-box" data-tag="lt" data-help="Insert less-than symbol: &lt;">&lt;</button>
+            <button class="symbol-box" data-tag="gt" data-help="Insert greater-than symbol: &gt;">&gt;</button>
+            <button class="symbol-box" data-tag="nbsp" data-help="Insert non-breaking space">NBSP</button>
+            <button class="symbol-box" data-tag="copy" data-help="Insert copyright symbol">©</button>
+            <button class="symbol-box" data-tag="reg" data-help="Insert registered symbol">®</button>
+            <button class="symbol-box" data-tag="asterisk" data-help="Insert asterisk">*</button>
+            <button class="symbol-box" data-tag="quote" data-help="Insert double quote">&quot;</button>
+            <button class="symbol-box" data-tag="apostrophe" data-help="Insert apostrophe">'</button>
+            <button class="symbol-box" data-tag="emdash" data-help="Insert em dash">—</button>
+            <button class="symbol-box" data-tag="ellipsis" data-help="Insert ellipsis">…</button>
+            <button class="symbol-box" data-tag="dash" data-help="Insert hyphen">-</button>
+          </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">Created by Manikya Varshney</footer>
+    </div>
+  </div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const previewFrame = document.getElementById('previewFrame');
+    const helpPopup = document.getElementById('helpPopup');
+    const popupTitle = document.getElementById('popupTitle');
+    const popupText = document.getElementById('popupText');
+    const toggleShortcutsBtn = document.getElementById('toggleShortcutsBtn');
+    const symbolConverterBtn = document.getElementById('symbolConverterBtn');
+    const guideBtn = document.getElementById('guideBtn');
+    const guidePanel = document.getElementById('guidePanel');
+    const bulletLibraryBtn = document.getElementById('bulletLibraryBtn');
+    const numberLibraryBtn = document.getElementById('numberLibraryBtn');
+    const bulletLibraryMenu = document.getElementById('bulletLibraryMenu');
+    const numberLibraryMenu = document.getElementById('numberLibraryMenu');
+    const shortcutsContainer = document.querySelector('.shortcuts');
+    const symbolPanel = document.getElementById('symbolPanel');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const formatCleanBtn = document.getElementById('formatCleanBtn');
+    const listStyleSelect = document.getElementById('listStyleSelect');
+    const markerStyleSelect = document.getElementById('markerStyleSelect');
+    const tableActionSelect = document.getElementById('tableActionSelect');
+    const tableRowsInput = document.getElementById('tableRowsInput');
+    const tableColsInput = document.getElementById('tableColsInput');
+    const insertTableBtn = document.getElementById('insertTableBtn');
+    const tableActionBtn = document.getElementById('tableActionBtn');
+    const tableDimensionSeparator = document.getElementById('tableDimensionSeparator');
+    const headingSelect = document.getElementById('headingSelect');
+    const headingApplyBtn = document.getElementById('headingApplyBtn');
+    const findBtn = document.getElementById('findBtn');
+    const findPanel = document.getElementById('findPanel');
+    const findInput = document.getElementById('findInput');
+    const replaceInput = document.getElementById('replaceInput');
+    const findNextBtn = document.getElementById('findNextBtn');
+    const replaceBtn = document.getElementById('replaceBtn');
+    const replaceAllBtn = document.getElementById('replaceAllBtn');
+    const closeFindBtn = document.getElementById('closeFindBtn');
+    const textColorPicker = document.getElementById('textColorPicker');
+    const highlightPicker = document.getElementById('highlightPicker');
+
+    function showHelp(button) {
+      const title = button.textContent.trim();
+      const help = button.dataset.help || 'No shortcut defined.';
+      popupTitle.textContent = title;
+      popupText.textContent = help;
+      helpPopup.classList.add('show');
+
+      const rect = button.getBoundingClientRect();
+      helpPopup.style.left = `${rect.left + 100}px`;
+      helpPopup.style.top = `${rect.top - 10}px`;
+    }
+
+    function hideHelp() {
+      helpPopup.classList.remove('show');
+    }
+
+    function replaceSelection(value) {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.setRangeText(value, start, end, 'end');
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+    }
+
+    function renderPreview() {
+      previewFrame.srcdoc = `<!doctype html><html><head><meta charset="UTF-8"><style>body{margin:24px;color:#1f2937;font-family:Segoe UI,Tahoma,sans-serif;line-height:1.6}table{border-collapse:collapse;max-width:100%}th,td{border:1px solid #cbd5e1;padding:8px 10px}img{max-width:100%}pre{white-space:pre-wrap}.numbered-bold>li::marker{font-weight:700}.numbered-normal>li::marker{font-weight:400}.marker-star>li::marker{content:"* "}.marker-diamond>li::marker{content:"◆ "}.marker-arrow>li::marker{content:"➤ "}.marker-check>li::marker{content:"✓ "}.numbered-parenthesis>li::marker{content:counter(list-item) ") "}</style></head><body>${editor.value}</body></html>`;
+    }
+
+    function clearAllText() {
+      editor.value = '';
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+    }
+
+    function formatCleanHtml() {
+      const source = editor.value.trim();
+      if (!source) return;
+
+      const template = document.createElement('template');
+      template.innerHTML = source;
+      const blockTags = new Set(['address', 'article', 'aside', 'blockquote', 'details', 'div', 'dl', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'li', 'main', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul']);
+      const voidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+
+      function attributes(element) {
+        return Array.from(element.attributes).map(attribute => ` ${attribute.name}="${attribute.value.replace(/"/g, '&quot;')}"`).join('');
+      }
+
+      function inlineContent(parent) {
+        return Array.from(parent.childNodes).map(node => {
+          if (node.nodeType === Node.TEXT_NODE) return node.textContent.replace(/\s+/g, ' ');
+          if (node.nodeType !== Node.ELEMENT_NODE) return '';
+          const tag = node.tagName.toLowerCase();
+          const opening = `<${tag}${attributes(node)}>`;
+          if (voidTags.has(tag)) return opening;
+          return `${opening}${inlineContent(node).trim()}</${tag}>`;
+        }).join('').replace(/\s+/g, ' ').trim();
+      }
+
+      function formatNode(node, depth = 0) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent.replace(/\s+/g, ' ').trim();
+          return text ? `${'  '.repeat(depth)}${text}` : '';
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+        const tag = node.tagName.toLowerCase();
+        const opening = `<${tag}${attributes(node)}>`;
+        if (voidTags.has(tag)) return `${'  '.repeat(depth)}${opening}`;
+        if (!blockTags.has(tag)) return `${'  '.repeat(depth)}${opening}${inlineContent(node)}</${tag}>`;
+
+        const children = Array.from(node.childNodes).map(child => formatNode(child, depth + 1)).filter(Boolean);
+        if (!children.length) return `${'  '.repeat(depth)}${opening}</${tag}>`;
+        return `${'  '.repeat(depth)}${opening}\n${children.join('\n')}\n${'  '.repeat(depth)}</${tag}>`;
+      }
+
+      const formatted = Array.from(template.content.childNodes).map(node => formatNode(node)).filter(Boolean).join('\n');
+      editor.value = formatted;
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+      editor.setSelectionRange(editor.value.length, editor.value.length);
+    }
+
+    function wrapText(openTag, closeTag = '') {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const selected = editor.value.substring(start, end) || 'text';
+      const wrapped = `${openTag}${selected}${closeTag}`;
+      editor.setRangeText(wrapped, start, end, 'end');
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+    }
+
+    function applyAlignment(alignment) {
+      wrapText(`<div style="text-align: ${alignment}">`, '</div>');
+    }
+
+    function applyIndent(direction) {
+      const margin = direction === 'indent' ? '2em' : '0';
+      wrapText(`<div style="margin-left: ${margin}">`, '</div>');
+    }
+
+    function applyHeading() {
+      const tag = headingSelect.value;
+      wrapText(`<${tag}>`, `</${tag}>`);
+    }
+
+    function buildList(type, styleOverride = listStyleSelect.value, marker = '', variant = '') {
+      const selected = editor.value.substring(editor.selectionStart, editor.selectionEnd) || 'List item';
+      const items = selected.split(/\n/).map(item => item.trim()).filter(Boolean);
+      const listItems = items.length ? items.map(item => `<li>${item}</li>`).join('\n') : '<li>List item</li>';
+      const selectedStyle = styleOverride;
+      const bulletStyle = ['disc', 'circle', 'square'].includes(selectedStyle) ? selectedStyle : 'disc';
+      const numberStyle = ['decimal', 'upper-alpha', 'lower-alpha', 'upper-roman', 'lower-roman'].includes(selectedStyle) ? selectedStyle : 'decimal';
+      const listStyle = type === 'ul' ? bulletStyle : numberStyle;
+      const classes = [];
+      if (type === 'ol') classes.push(markerStyleSelect.value === 'bold' ? 'numbered-bold' : 'numbered-normal');
+      if (variant === 'parenthesis') classes.push('numbered-parenthesis');
+      if (marker) classes.push(`marker-${marker}`);
+      const classAttribute = classes.length ? ` class="${classes.join(' ')}"` : '';
+      replaceSelection(`<${type}${classAttribute} style="list-style-type: ${listStyle}">\n${listItems}\n</${type}>`);
+    }
+
+    function buildNumberedList(markerStyle) {
+      const selected = editor.value.substring(editor.selectionStart, editor.selectionEnd) || 'List item';
+      const items = selected.split(/\n/).map(item => item.trim()).filter(Boolean);
+      const listItems = items.length ? items.map(item => `<li>${item}</li>`).join('\n') : '<li>List item</li>';
+      const className = markerStyle === 'bold' ? 'numbered-bold' : 'numbered-normal';
+      const numberStyles = ['decimal', 'upper-alpha', 'lower-alpha', 'upper-roman', 'lower-roman'];
+      const listStyle = numberStyles.includes(listStyleSelect.value) ? listStyleSelect.value : 'decimal';
+      replaceSelection(`<ol class="${className}" style="list-style-type: ${listStyle}">\n${listItems}\n</ol>`);
+    }
+
+    function buildTable() {
+      const selected = editor.value.substring(editor.selectionStart, editor.selectionEnd) || 'Cell';
+      const rows = selected.split(/\n/).map(row => row.trim()).filter(Boolean);
+      const tableBody = rows.length
+        ? rows.map(row => {
+            const cells = row.split(/\s*\|\s*/).map(cell => `<td>${cell}</td>`).join('');
+            return `<tr>${cells}</tr>`;
+          }).join('\n')
+        : '<tr><td>Cell 1</td><td>Cell 2</td></tr>';
+      replaceSelection(`<table>\n<thead><tr><th>Header 1</th><th>Header 2</th></tr></thead>\n<tbody>\n${tableBody}\n</tbody>\n</table>`);
+    }
+
+    function createTable(rows, columns) {
+      const body = Array.from({ length: rows }, () => `<tr>${Array.from({ length: columns }, () => '<td>Cell</td>').join('')}</tr>`).join('\n');
+      return `<table>\n<tbody>\n${body}\n</tbody>\n</table>`;
+    }
+
+    function getTableRange() {
+      const source = editor.value;
+      const selectionStart = editor.selectionStart;
+      const selectionEnd = editor.selectionEnd;
+      const start = source.lastIndexOf('<table', selectionStart);
+      const closingTag = source.indexOf('</table>', start);
+      if (start === -1 || closingTag === -1) return null;
+      const end = closingTag + '</table>'.length;
+      return { start, end, html: source.slice(start, end) };
+    }
+
+    function getSelectedTableIndexes(range) {
+      const beforeSelection = editor.value.slice(range.start, editor.selectionStart);
+      const rowIndex = Math.max(0, (beforeSelection.match(/<tr\b/gi) || []).length - 1);
+      const cellIndex = Math.max(0, (beforeSelection.match(/<(?:td|th)\b/gi) || []).length - 1);
+      return { rowIndex, cellIndex };
+    }
+
+    function setTableCountInputs(action) {
+      const rowLabel = document.querySelector('label[for="tableRowsInput"]');
+      const columnLabel = document.querySelector('label[for="tableColsInput"]');
+      const showDimensions = action === 'insert-table';
+      rowLabel.textContent = 'Rows (m)';
+      columnLabel.textContent = 'Columns (n)';
+      rowLabel.hidden = !showDimensions;
+      tableRowsInput.hidden = !showDimensions;
+      columnLabel.hidden = !showDimensions;
+      tableColsInput.hidden = !showDimensions;
+      tableDimensionSeparator.hidden = !showDimensions;
+      tableRowsInput.disabled = !showDimensions;
+      tableColsInput.disabled = !showDimensions;
+    }
+
+    function applyTableAction() {
+      const action = tableActionSelect.value;
+      const isInsertTable = action === 'insert-table';
+      const rows = isInsertTable ? Math.min(20, Math.max(1, Number(tableRowsInput.value) || 1)) : 1;
+      const columns = isInsertTable ? Math.min(20, Math.max(1, Number(tableColsInput.value) || 1)) : 1;
+
+      if (action === 'insert-table') {
+        replaceSelection(createTable(rows, columns));
+        return;
+      }
+
+      const range = getTableRange();
+      if (!range) return;
+
+      const template = document.createElement('template');
+      template.innerHTML = range.html;
+      const table = template.content.querySelector('table');
+      if (!table) return;
+
+      const tableRows = Array.from(table.rows);
+      const selectedIndexes = getSelectedTableIndexes(range);
+      const selectedRowIndex = Math.min(selectedIndexes.rowIndex, Math.max(0, tableRows.length - 1));
+      const selectedRow = tableRows[selectedRowIndex];
+      const selectedCellIndex = selectedRow ? Math.min(selectedIndexes.cellIndex, Math.max(0, selectedRow.cells.length - 1)) : 0;
+      const firstRowCells = tableRows[0] ? tableRows[0].cells.length : columns;
+
+      if (action === 'insert-row') {
+        for (let count = 0; count < rows; count += 1) {
+          const row = table.insertRow(selectedRowIndex + count);
+          for (let index = 0; index < firstRowCells; index += 1) row.insertCell(-1).textContent = 'Cell';
+        }
+      } else if (action === 'insert-column') {
+        tableRows.forEach(row => {
+          for (let count = 0; count < columns; count += 1) row.insertCell(selectedCellIndex + count).textContent = 'Cell';
+        });
+      } else if (action === 'insert-cell') {
+        if (!tableRows.length) table.insertRow(-1).insertCell(-1).textContent = 'Cell';
+        else tableRows[tableRows.length - 1].insertCell(-1).textContent = 'Cell';
+      }
+
+      editor.setRangeText(table.outerHTML, range.start, range.end, 'end');
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+    }
+
+    function insertTableFromInputs() {
+      const rows = Math.min(20, Math.max(1, Number(tableRowsInput.value) || 1));
+      const columns = Math.min(20, Math.max(1, Number(tableColsInput.value) || 1));
+      replaceSelection(createTable(rows, columns));
+    }
+
+    function buildNestedList(type, styleOverride = listStyleSelect.value) {
+      const selected = editor.value.substring(editor.selectionStart, editor.selectionEnd) || 'Parent';
+      const lines = selected.split(/\n/).map(line => line.trim()).filter(Boolean);
+      const content = lines.length ? lines : ['Parent'];
+      const selectedStyle = styleOverride;
+      const bulletStyle = ['disc', 'circle', 'square'].includes(selectedStyle) ? selectedStyle : 'disc';
+      const numberStyle = ['decimal', 'upper-alpha', 'lower-alpha', 'upper-roman', 'lower-roman'].includes(selectedStyle) ? selectedStyle : 'decimal';
+      const listStyle = type === 'ul' ? bulletStyle : numberStyle;
+      const markerClass = type === 'ol' && markerStyleSelect.value === 'bold' ? ' class="numbered-bold"' : '';
+      const nested = type === 'ul'
+        ? `<ul style="list-style-type: ${listStyle}">${content.map((item, index) => `<li>${item}${index === 0 ? `<ul style="list-style-type: ${listStyle}"><li>Sub item</li></ul>` : ''}</li>`).join('')}</ul>`
+        : `<ol${markerClass} style="list-style-type: ${listStyle}">${content.map((item, index) => `<li>${item}${index === 0 ? `<ol${markerClass} style="list-style-type: ${listStyle}"><li>Sub item</li></ol>` : ''}</li>`).join('')}</ol>`;
+      replaceSelection(nested);
+    }
+
+    function toggleFindPanel() {
+      findPanel.classList.toggle('show');
+      if (findPanel.classList.contains('show')) {
+        findInput.focus();
+      }
+    }
+
+    function applyTextColor() {
+      const color = textColorPicker.value;
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const selected = editor.value.substring(start, end) || 'text';
+      editor.setRangeText(`<span style="color: ${color}">${selected}</span>`, start, end, 'end');
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+    }
+
+    function applyHighlight() {
+      const color = highlightPicker.value;
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const selected = editor.value.substring(start, end) || 'text';
+      editor.setRangeText(`<span style="background-color: ${color}">${selected}</span>`, start, end, 'end');
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+    }
+
+    function replaceCurrentMatch() {
+      const findText = findInput.value;
+      const replaceText = replaceInput.value;
+      if (!findText) return;
+
+      const text = editor.value;
+      const start = editor.selectionStart;
+      const foundIndex = text.indexOf(findText, start);
+      if (foundIndex === -1) {
+        alert('No match found.');
+        return;
+      }
+
+      editor.setRangeText(replaceText, foundIndex, foundIndex + findText.length, 'end');
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+      editor.setSelectionRange(foundIndex, foundIndex + replaceText.length);
+    }
+
+    function replaceAllMatches() {
+      const findText = findInput.value;
+      const replaceText = replaceInput.value;
+      if (!findText) return;
+
+      const updated = editor.value.split(findText).join(replaceText);
+      editor.value = updated;
+      editor.dispatchEvent(new Event('input'));
+      editor.focus();
+    }
+
+    function toggleShortcutsView() {
+      shortcutsContainer.classList.toggle('hidden');
+      const isHidden = shortcutsContainer.classList.contains('hidden');
+      toggleShortcutsBtn.textContent = isHidden ? '👁‍🗨' : '👁';
+      toggleShortcutsBtn.title = isHidden ? 'Show shortcuts' : 'Hide shortcuts';
+    }
+
+    function toggleSymbolPanel() {
+      shortcutsContainer.classList.remove('hidden');
+      symbolPanel.classList.toggle('show');
+      symbolConverterBtn.title = symbolPanel.classList.contains('show') ? 'Hide keyboard symbol converter' : 'Show keyboard symbol converter';
+    }
+
+    function toggleGuide() {
+      guidePanel.classList.toggle('hidden');
+      guideBtn.title = guidePanel.classList.contains('hidden') ? 'Open tool guide' : 'Hide tool guide';
+    }
+
+    function closeListLibraries() {
+      bulletLibraryMenu.classList.remove('show');
+      numberLibraryMenu.classList.remove('show');
+    }
+
+    function applyLibraryChoice(option) {
+      const type = option.dataset.libraryType;
+      const style = option.dataset.libraryStyle;
+      const marker = option.dataset.libraryMarker;
+      closeListLibraries();
+
+      if (style === 'none') {
+        const selected = editor.value.substring(editor.selectionStart, editor.selectionEnd) || 'List item';
+        replaceSelection(selected);
+        return;
+      }
+
+      if (type === 'ul' && marker) {
+        buildList('ul', 'disc', marker);
+      } else if (type === 'ol' && style === 'decimal-parenthesis') {
+        buildList('ol', 'decimal', '', 'parenthesis');
+      } else if (type === 'ol' && style === 'multilevel') {
+        buildNestedList('ol', 'decimal');
+      } else if (type === 'ul') {
+        listStyleSelect.value = style;
+        buildList('ul', style);
+      } else {
+        listStyleSelect.value = style;
+        buildList('ol', style);
+      }
+    }
+
+    document.querySelectorAll('[data-marker-weight]').forEach(option => {
+      option.addEventListener('click', () => {
+        markerStyleSelect.value = option.dataset.markerWeight;
+        document.querySelectorAll('[data-marker-weight]').forEach(item => item.classList.remove('active'));
+        option.classList.add('active');
+      });
+    });
+
+    toggleShortcutsBtn.addEventListener('click', toggleShortcutsView);
+    symbolConverterBtn.addEventListener('click', toggleSymbolPanel);
+    guideBtn.addEventListener('click', toggleGuide);
+    bulletLibraryBtn.addEventListener('click', () => {
+      numberLibraryMenu.classList.remove('show');
+      bulletLibraryMenu.classList.toggle('show');
+    });
+    numberLibraryBtn.addEventListener('click', () => {
+      bulletLibraryMenu.classList.remove('show');
+      numberLibraryMenu.classList.toggle('show');
+    });
+    document.querySelectorAll('.library-option').forEach(option => {
+      option.addEventListener('click', () => applyLibraryChoice(option));
+    });
+    editor.addEventListener('input', renderPreview);
+    clearAllBtn.addEventListener('click', clearAllText);
+    tableActionSelect.addEventListener('change', () => setTableCountInputs(tableActionSelect.value));
+    insertTableBtn.addEventListener('click', insertTableFromInputs);
+    tableActionBtn.addEventListener('click', applyTableAction);
+    headingApplyBtn.addEventListener('click', applyHeading);
+    formatCleanBtn.addEventListener('click', () => {
+      showHelp(formatCleanBtn);
+      formatCleanHtml();
+    });
+    findBtn.addEventListener('click', toggleFindPanel);
+    closeFindBtn.addEventListener('click', () => findPanel.classList.remove('show'));
+    findNextBtn.addEventListener('click', replaceCurrentMatch);
+    replaceBtn.addEventListener('click', replaceCurrentMatch);
+    replaceAllBtn.addEventListener('click', replaceAllMatches);
+    textColorPicker.addEventListener('input', applyTextColor);
+    highlightPicker.addEventListener('input', applyHighlight);
+    setTableCountInputs('insert-table');
+    renderPreview();
+
+    document.querySelectorAll('button').forEach(button => {
+      if (button.id === 'findBtn' || button.id === 'findNextBtn' || button.id === 'replaceBtn' || button.id === 'replaceAllBtn' || button.id === 'closeFindBtn' || button.id === 'clearAllBtn' || button.id === 'insertTableBtn' || button.id === 'tableActionBtn' || button.id === 'headingApplyBtn' || button.id === 'formatCleanBtn' || button.id === 'toggleShortcutsBtn' || button.id === 'symbolConverterBtn' || button.id === 'guideBtn') return;
+
+      if (!button.dataset.tag) return;
+
+      button.addEventListener('click', (event) => {
+        showHelp(button);
+
+        if (button.dataset.align) {
+          applyAlignment(button.dataset.align);
+          return;
+        }
+
+        if (button.dataset.indent) {
+          applyIndent(button.dataset.indent);
+          return;
+        }
+
+        const tag = button.dataset.tag;
+
+          if (tag === 'ul') buildList('ul');
+        else if (tag === 'ol') buildList('ol');
+        else if (tag === 'sub-ul') buildNestedList('ul');
+        else if (tag === 'sub-ol') buildNestedList('ol');
+        else if (tag === 'table') buildTable();
+        else if (tag === 'br') replaceSelection('<br>');
+        else if (tag === 'hr') replaceSelection('<hr>');
+        else if (tag === 'nbsp') replaceSelection('&nbsp;');
+        else if (tag === 'amp') replaceSelection('&amp;');
+        else if (tag === 'lt') replaceSelection('&lt;');
+        else if (tag === 'gt') replaceSelection('&gt;');
+        else if (tag === 'copy') replaceSelection('&copy;');
+        else if (tag === 'reg') replaceSelection('&reg;');
+        else if (tag === 'asterisk') replaceSelection('*');
+        else if (tag === 'quote') replaceSelection('&quot;');
+        else if (tag === 'apostrophe') replaceSelection("'");
+        else if (tag === 'dash') replaceSelection('-');
+        else if (tag === 'emdash') replaceSelection('—');
+        else if (tag === 'ellipsis') replaceSelection('…');
+        else if (tag === 'tr') wrapText('<tr>', '</tr>');
+        else if (tag === 'td') wrapText('<td>', '</td>');
+        else wrapText(`<${tag}>`, `</${tag}>`);
+      });
+
+      button.addEventListener('mouseleave', hideHelp);
+    });
+
+    document.addEventListener('click', event => {
+      if (!event.target.closest('[data-help]')) hideHelp();
+      if (!event.target.closest('.library-wrap')) closeListLibraries();
+    });
+
+    document.addEventListener('keydown', function (event) {
+      const isCtrl = event.ctrlKey || event.metaKey;
+      if (!isCtrl) return;
+
+      if (event.key.toLowerCase() === 'b' && !event.shiftKey) {
+        event.preventDefault();
+        wrapText('<b>', '</b>');
+      }
+
+      if (event.key.toLowerCase() === 'i' && !event.shiftKey) {
+        event.preventDefault();
+        wrapText('<i>', '</i>');
+      }
+
+      if (event.key.toLowerCase() === 'u') {
+        event.preventDefault();
+        wrapText('<u>', '</u>');
+      }
+
+      if (event.key.toLowerCase() === 'b' && event.shiftKey) {
+        event.preventDefault();
+        wrapText('<strong>', '</strong>');
+      }
+
+      if (event.key.toLowerCase() === 'i' && event.shiftKey) {
+        event.preventDefault();
+        wrapText('<em>', '</em>');
+      }
+
+      if (event.key.toLowerCase() === 's' && event.shiftKey) {
+        event.preventDefault();
+        wrapText('<span>', '</span>');
+      }
+
+      if (event.shiftKey && event.key === '8') {
+        event.preventDefault();
+        buildList('ul');
+      }
+
+      if (event.shiftKey && event.key === '7') {
+        event.preventDefault();
+        buildList('ol');
+      }
+
+      if (event.altKey && event.key.toLowerCase() === 'p') {
+        event.preventDefault();
+        wrapText('<p>', '</p>');
+      }
+
+      if (event.altKey && /^\d$/.test(event.key) && Number(event.key) >= 1 && Number(event.key) <= 6) {
+        event.preventDefault();
+        const tag = `h${event.key}`;
+        wrapText(`<${tag}>`, `</${tag}>`);
+      }
+
+      if (event.altKey && event.key.toLowerCase() === 't') {
+        event.preventDefault();
+        buildTable();
+      }
+
+      if (event.key === 'Enter' && event.ctrlKey) {
+        event.preventDefault();
+        replaceSelection('<br>');
+      }
+
+      if (event.shiftKey && event.key === 'Enter') {
+        event.preventDefault();
+        replaceSelection('<br>');
+      }
+
+      if (event.shiftKey && event.code === 'Space') {
+        event.preventDefault();
+        replaceSelection('&nbsp;');
+      }
+    });
+  </script>
+</body>
+</html>
