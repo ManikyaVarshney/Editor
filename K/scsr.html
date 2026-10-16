@@ -1,0 +1,472 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SCSR — Symbol & Space Cleaner</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font: 15px Arial, sans-serif;
+  background: #f3f5f8;
+  color: #172033;
+}
+
+header {
+  padding: 20px 24px;
+  background: #172033;
+  color: white;
+}
+
+h1 {
+  margin: 0 0 6px;
+  font-size: 23px;
+}
+
+header p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+main {
+  max-width: 1250px;
+  margin: 20px auto;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #dce2ea;
+  border-radius: 10px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.heading {
+  padding: 13px 15px;
+  border-bottom: 1px solid #e5eaf0;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+small,
+.hint {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.toolbar,
+.actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.actions {
+  border-top: 1px solid #e5eaf0;
+  border-bottom: 0;
+}
+
+button {
+  border: 1px solid #cbd5e1;
+  background: white;
+  padding: 8px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  background: #eff6ff;
+}
+
+.primary {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.editor,
+.result {
+  min-height: 330px;
+  max-height: 65vh;
+  overflow: auto;
+  padding: 16px;
+  outline: none;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.editor {
+  white-space: pre-wrap;
+}
+
+.editor:empty::before {
+  content: "Paste rich text here, or type your content...";
+  color: #94a3b8;
+}
+
+.editor p,
+.editor div,
+.result p,
+.result div {
+  margin: 0;
+}
+
+.hint {
+  padding: 0 15px 14px;
+}
+
+#htmlView {
+  padding: 14px;
+  background: #111827;
+  color: #d1e7ff;
+  font: 12px/1.55 Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 230px;
+  overflow: auto;
+  border-top: 1px solid #e5eaf0;
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+
+  .editor,
+  .result {
+    min-height: 240px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>SCSR — Symbol & Space Cleaner</h1>
+  <p>Clean symbols and spaces while preserving basic text formatting.</p>
+</header>
+
+<main>
+
+<section class="panel">
+
+  <div class="heading">
+    Input
+    <small>Paste or type text</small>
+  </div>
+
+  <div class="toolbar">
+    <button data-cmd="bold"><strong>B</strong></button>
+    <button data-cmd="italic"><em>I</em></button>
+    <button data-cmd="underline"><u>U</u></button>
+    <button id="paste">Paste from Clipboard</button>
+  </div>
+
+  <div id="input"
+       class="editor"
+       contenteditable="true"
+       spellcheck="false"></div>
+
+  <div class="actions">
+    <button class="primary" id="convert">Convert / Clean</button>
+    <button id="clear">Clear</button>
+  </div>
+
+  <div class="hint">
+    Paste → Convert → Copy the cleaned result.
+    Original formatting cannot be recovered if the input is plain text.
+  </div>
+
+</section>
+
+<section class="panel">
+
+  <div class="heading">
+    Result
+    <small id="count">0 characters</small>
+  </div>
+
+  <div id="result"
+       class="result"
+       contenteditable="true"
+       spellcheck="false"></div>
+
+  <div class="actions">
+    <button class="primary" id="copyRich">Copy Formatted Result</button>
+    <button id="copyHtml">Copy HTML</button>
+    <button id="select">Select All</button>
+  </div>
+
+  <div class="heading">
+    HTML View
+    <small>Clean tags</small>
+  </div>
+
+  <pre id="htmlView"></pre>
+
+  <div class="hint">
+    Formatted copying depends on the destination editor.
+  </div>
+
+</section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function normalizeSymbols(text) {
+  const rules = [
+    [/[\u2018\u2019\u201A\u201B\u2032]/g, "'"],
+    [/[\u201C\u201D\u201E\u201F\u2033]/g, '"'],
+    [/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-"],
+    [/\u2026/g, "..."],
+    [/[\u00A0\u202F\u2007\u2009\u200A\u2002\u2003\u2004\u2005\u2006]/g, " "],
+    [/\u00AD/g, ""],
+    [/[\u200B\u200C\u200D\uFEFF]/g, ""],
+    [/[\u2022\u25E6\u2043]/g, "-"],
+    [/\u00D7/g, "x"],
+    [/\u00F7/g, "/"],
+    [/\u2264/g, "<="],
+    [/\u2265/g, ">="],
+    [/\u2260/g, "!="],
+    [/\u2248/g, "~="],
+    [/\u00A9/g, "(c)"],
+    [/\u00AE/g, "(R)"],
+    [/\u2122/g, "(TM)"]
+  ];
+
+  for (const [pattern, replacement] of rules) {
+    text = text.replace(pattern, replacement);
+  }
+
+  return text;
+}
+
+function cleanTextNodes(node) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    node.nodeValue = normalizeSymbols(node.nodeValue)
+      .replace(/[ \t\f\v]+/g, " ")
+      .replace(/ +([,.;:!?])/g, "$1");
+    return;
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+  [...node.childNodes].forEach(cleanTextNodes);
+}
+
+function sanitizeHTML(source) {
+  const clone = source.cloneNode(true);
+
+  const allowed = new Set([
+    "B", "STRONG", "I", "EM", "U",
+    "P", "DIV", "BR", "UL", "OL",
+    "LI", "SUB", "SUP"
+  ]);
+
+  function sanitize(node) {
+    for (const child of [...node.childNodes]) {
+      if (child.nodeType !== Node.ELEMENT_NODE) continue;
+
+      sanitize(child);
+
+      if (!allowed.has(child.tagName)) {
+        child.replaceWith(...child.childNodes);
+        continue;
+      }
+
+      [...child.attributes].forEach(attr => {
+        child.removeAttribute(attr.name);
+      });
+
+      if (child.tagName === "B") {
+        const strong = document.createElement("strong");
+        strong.innerHTML = child.innerHTML;
+        child.replaceWith(strong);
+      }
+
+      if (child.tagName === "I") {
+        const em = document.createElement("em");
+        em.innerHTML = child.innerHTML;
+        child.replaceWith(em);
+      }
+    }
+  }
+
+  sanitize(clone);
+  cleanTextNodes(clone);
+
+  clone.querySelectorAll("p, div, li").forEach(el => {
+    el.innerHTML = el.innerHTML
+      .replace(/^[ \t]+|[ \t]+$/g, "");
+  });
+
+  return clone.innerHTML
+    .replace(/>\s+</g, "><")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+}
+
+function convert() {
+  const html = sanitizeHTML($("input"));
+
+  $("result").innerHTML = html;
+  $("htmlView").textContent = html;
+
+  $("count").textContent =
+    $("result").innerText.length.toLocaleString() + " characters";
+}
+
+document.querySelectorAll("[data-cmd]").forEach(button => {
+  button.addEventListener("click", () => {
+    $("input").focus();
+
+    document.execCommand(
+      button.dataset.cmd,
+      false,
+      null
+    );
+
+    convert();
+  });
+});
+
+$("convert").addEventListener("click", convert);
+
+$("input").addEventListener("input", convert);
+
+$("clear").addEventListener("click", () => {
+  $("input").innerHTML = "";
+  $("result").innerHTML = "";
+  $("htmlView").textContent = "";
+  $("count").textContent = "0 characters";
+  $("input").focus();
+});
+
+$("select").addEventListener("click", () => {
+  const range = document.createRange();
+
+  range.selectNodeContents($("result"));
+
+  const selection = getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+});
+
+$("copyRich").addEventListener("click", async () => {
+  try {
+    const html = $("result").innerHTML;
+    const plain = $("result").innerText;
+
+    if (navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": new Blob(
+            [html],
+            { type: "text/html" }
+          ),
+          "text/plain": new Blob(
+            [plain],
+            { type: "text/plain" }
+          )
+        })
+      ]);
+    } else {
+      const range = document.createRange();
+      range.selectNodeContents($("result"));
+
+      const selection = getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      document.execCommand("copy");
+      selection.removeAllRanges();
+    }
+
+    $("copyRich").textContent = "Copied!";
+
+    setTimeout(() => {
+      $("copyRich").textContent = "Copy Formatted Result";
+    }, 1300);
+
+  } catch {
+    alert("Clipboard permission blocked. Select and copy the result manually.");
+  }
+});
+
+$("copyHtml").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(
+      $("result").innerHTML
+    );
+
+    $("copyHtml").textContent = "HTML Copied!";
+
+    setTimeout(() => {
+      $("copyHtml").textContent = "Copy HTML";
+    }, 1300);
+
+  } catch {
+    alert("Clipboard permission blocked. Copy the HTML from HTML View.");
+  }
+});
+
+$("paste").addEventListener("click", async () => {
+  try {
+    if (navigator.clipboard.read) {
+      const items = await navigator.clipboard.read();
+      let html = "";
+
+      for (const item of items) {
+        if (item.types.includes("text/html")) {
+          html = await (
+            await item.getType("text/html")
+          ).text();
+          break;
+        }
+      }
+
+      if (html) {
+        $("input").innerHTML = html;
+      } else {
+        $("input").innerText =
+          await navigator.clipboard.readText();
+      }
+
+      convert();
+
+    } else {
+      $("input").focus();
+    }
+
+  } catch {
+    $("input").focus();
+
+    alert(
+      "Clipboard access blocked. Paste manually into the input area."
+    );
+  }
+});
+
+convert();
+</script>
+
+</body>
+</html>
